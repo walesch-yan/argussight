@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "argussight"
+version = "0.1.0"
+description = "A python package for computer vision tasks"
+authors = ["The MXCuBE collaboration <<mxcube@esrf.fr>"]
+license = "LGPL-3.0-or-later"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+numpy = "1.24.4"
+opencv-python = "4.10.0.84"
+pillow = "10.3.0"
+pydantic = "1.10.16"
+redis = "4.6.0"
+
+[tool.poetry.scripts]
+argussight = "argussight.main:run"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
