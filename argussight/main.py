@@ -1,6 +1,9 @@
 import argparse
+import multiprocessing
+
 from argussight.core.config import get_config_from_dict, SaveFormat
 from argussight.core.collector import Collector
+from argussight.core.spawner import Spawner
 
 def parse_args() -> None:
     opt_parser = argparse.ArgumentParser(description="mxcube argussight")
@@ -85,8 +88,26 @@ def run() -> None:
     )
 
     collector = Collector(config)
-    
-    collector.start()
+    spawner = Spawner()
+
+    collection_process = multiprocessing.Process(target=collector.start)
+    spawning_process = multiprocessing.Process(target=spawner.run)
+
+    try:
+        collection_process.start()
+        spawning_process.start()
+
+        collection_process.join()
+        spawning_process.join()
+
+    except KeyboardInterrupt:
+        print("Terminating processes...")
+        collection_process.terminate()
+        spawning_process.terminate()
+
+        collection_process.join()
+        spawning_process.join()
+        print("Termination completed")
 
 if __name__ == "__main__":
     run()
