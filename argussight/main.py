@@ -87,8 +87,10 @@ def run() -> None:
         }
     )
 
-    collector = Collector(config)
-    spawner = Spawner()
+    receiver_pipe, sender_pipe = multiprocessing.Pipe(False)
+
+    collector = Collector(config, sender_pipe)
+    spawner = Spawner(receiver_pipe, int(args.queue_max_length))
 
     collection_process = multiprocessing.Process(target=collector.start)
     spawning_process = multiprocessing.Process(target=spawner.run)

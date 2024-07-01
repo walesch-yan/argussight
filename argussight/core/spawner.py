@@ -3,14 +3,17 @@ import multiprocessing
 import time
 from typing import List
 import importlib
+from collections import deque
 
 from argussight.core.video_processes.vprocess import Vprocess, Test
 
 class Spawner:
-    def __init__(self) -> None:
+    def __init__(self, pipe_connection: multiprocessing.connection.Connection, queue_maxlen: int = 200) -> None:
         self.config_file = 'argussight/core/video_processes/config.yaml'
         self.processes = {}
         self.worker_classes = {}
+        self.pipe = pipe_connection
+        self.queue = deque(maxlen=queue_maxlen)
 
     def load_config(self) -> None:
         with open(self.config_file, 'r') as f:
@@ -49,7 +52,10 @@ class Spawner:
     def manage_processes(self) -> None:
         try:
             while True:
-                time.sleep(5)
+                while self.pipe.poll():
+                    frame = self.pipe.recv()
+                    self.queue.append(frame)
+                time.sleep(0.04)
         except KeyboardInterrupt:
             self.terminate_processes(list(self.processes.keys()))
 

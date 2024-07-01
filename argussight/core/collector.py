@@ -7,13 +7,15 @@ import base64
 from collections import deque
 import cv2
 import numpy as np
+from multiprocessing.connection import Connection
 
 class Collector:
-    def __init__(self, config: CollectorConfiguration):
+    def __init__(self, config: CollectorConfiguration, pipe_connection: Connection):
         self._client = redis.StrictRedis(host=config.redis.host, port=config.redis.port)
         self._channel = config.redis.channel
         self._max_queue_length = config.queue.max_length
         self._queue = deque(maxlen=self._max_queue_length)
+        self.pipe = pipe_connection
         self._save_folder = config.queue.save_folder
         self._save_format = config.queue.save_format
 
@@ -27,6 +29,7 @@ class Collector:
 
     def process_frame(self, frame: dict) -> None:
         self._queue.append(frame)
+        self.pipe.send(frame)
     
     def save_queue_as_video(self) -> None:
         video_folder = os.path.join(self._save_folder, 'videos')
