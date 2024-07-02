@@ -23,11 +23,12 @@ class Collector:
             os.makedirs(self._save_folder, exist_ok=True)
 
     def save_frame(self, frame: dict, folder_path: str):
-        data = base64.b64decode(frame['data'])
-        img = Image.frombytes("RGB", frame['size'], data, "raw")
+        img = Image.frombytes("RGB", frame['size'], frame['data'], "raw")
         img.save(os.path.join(folder_path, 'img'+ frame['time'] + '.jpg'), format='JPEG')
 
     def process_frame(self, frame: dict) -> None:
+        # decode the received frame data before saving
+        frame["data"] = base64.b64decode(frame['data'])
         self._queue.append(frame)
         self.pipe.send(frame)
     
@@ -40,8 +41,7 @@ class Collector:
         out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'MJPG') , 30, self._queue[0]['size'])
 
         for frame in self._queue:
-            data = base64.b64decode(frame['data'])
-            img = Image.frombytes("RGB", frame['size'], data, "raw")
+            img = Image.frombytes("RGB", frame['size'], frame['data'], "raw")
             open_cv_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
             out.write(open_cv_image)
         
