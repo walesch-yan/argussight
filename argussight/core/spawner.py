@@ -4,12 +4,14 @@ import time
 from typing import List
 import importlib
 from collections import deque
+import os
 
-from argussight.core.video_processes.vprocess import Vprocess, Test
+from argussight.core.video_processes.vprocess import Vprocess
 
 class Spawner:
     def __init__(self, pipe_connection: multiprocessing.connection.Connection, queue_maxlen: int = 200) -> None:
-        self.config_file = 'argussight/core/video_processes/config.yaml'
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.config_file = os.path.join(current_dir, 'video_processes/config.yaml')
         self.processes = {}
         self.worker_classes = {}
         self.pipe = pipe_connection
