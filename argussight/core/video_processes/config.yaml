@@ -2,8 +2,12 @@ modules_path: argussight.core.video_processes
 
 worker_classes:
   test: vprocess.Test
+  flow_detection: flow_detection.FlowDetection
 
 processes:
   - name: "test"
     type: test
     args: []
+  - name: "detector"
+    type: "flow_detection"
+    args: [[500, 500, 300, 450]]

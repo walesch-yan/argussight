@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from argussight.core.video_processes.vprocess import Vprocess
+from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
 from typing import Tuple
 import time
 import yaml
@@ -9,11 +9,12 @@ from multiprocessing.managers import DictProxy
 from multiprocessing.synchronize import Lock
 
 class FlowDetection(Vprocess):
-    def __init__(self, roi: Tuple[int,int,int,int], shared_dict: DictProxy, lock: Lock) -> None:
+    def __init__(self, shared_dict: DictProxy, lock: Lock, roi: Tuple[int,int,int,int]) -> None:
         super().__init__(shared_dict, lock)
         self._roi = roi
         self._previous_frame = None
         self._p0 = None
+        self._frame_format = FrameFormat.CV2 # this process needs a cv2 image format for computations
 
         self.load_params()
         
@@ -97,11 +98,13 @@ class FlowDetection(Vprocess):
         return frame
     
     def run(self):
+        processed_frame = None
         while True:
             change = self.read_frame()
             if self._current_frame_number != 0:
                 processed_frame = self.detect_and_track_features(self._current_frame) if change else processed_frame
-                cv2.imshow('Live Stream', processed_frame)
+                if processed_frame is not None:
+                    cv2.imshow('Live Stream', processed_frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break

@@ -7,15 +7,17 @@ import base64
 from collections import deque
 import cv2
 import numpy as np
-from multiprocessing.connection import Connection
+from multiprocessing.managers import DictProxy
+from multiprocessing.synchronize import Lock
 
 class Collector:
-    def __init__(self, config: CollectorConfiguration, pipe_connection: Connection):
+    def __init__(self, config: CollectorConfiguration, shared_dict: DictProxy, lock: Lock):
         self._client = redis.StrictRedis(host=config.redis.host, port=config.redis.port)
         self._channel = config.redis.channel
         self._max_queue_length = config.queue.max_length
         self._queue = deque(maxlen=self._max_queue_length)
-        self.pipe = pipe_connection
+        self.shared_dict = shared_dict
+        self.lock = lock
         self._save_folder = config.queue.save_folder
         self._save_format = config.queue.save_format
 
@@ -30,7 +32,11 @@ class Collector:
         # decode the received frame data before saving
         frame["data"] = base64.b64decode(frame['data'])
         self._queue.append(frame)
-        self.pipe.send(frame)
+        with self.lock:
+            self.shared_dict['frame'] = frame['data']
+            self.shared_dict['frame_number'] += 1
+            self.shared_dict['time_stamp'] = frame['time']
+            self.shared_dict['size'] = frame['size']
     
     def save_queue_as_video(self) -> None:
         video_folder = os.path.join(self._save_folder, 'videos')

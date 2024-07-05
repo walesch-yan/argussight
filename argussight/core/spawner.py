@@ -1,24 +1,25 @@
 import yaml
 import multiprocessing
+from multiprocessing.managers import DictProxy
+from multiprocessing.synchronize import Lock
 import time
 from typing import List
 import importlib
-from collections import deque
 import os
 
 from argussight.core.video_processes.vprocess import Vprocess
 
 class Spawner:
-    def __init__(self, pipe_connection: multiprocessing.connection.Connection, queue_maxlen: int = 200) -> None:
+    def __init__(self, shared_dict: DictProxy, lock: Lock) -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.config_file = os.path.join(current_dir, 'video_processes/config.yaml')
-        self.processes = {}
-        self.worker_classes = {}
-        self.pipe = pipe_connection
-        self.queue = deque(maxlen=queue_maxlen)
+        self._config_file = os.path.join(current_dir, 'video_processes/config.yaml')
+        self._processes = {}
+        self._worker_classes = {}
+        self.shared_dict = shared_dict
+        self.lock = lock
 
     def load_config(self) -> None:
-        with open(self.config_file, 'r') as f:
+        with open(self._config_file, 'r') as f:
             self.config = yaml.safe_load(f)
         self.load_worker_classes()
 
@@ -28,12 +29,12 @@ class Spawner:
         for key, class_path in worker_classes_config.items():
             module_name, class_name = class_path.rsplit('.', 1)
             module = importlib.import_module(modules_path + '.' + module_name)
-            self.worker_classes[key] = getattr(module, class_name)
+            self._worker_classes[key] = getattr(module, class_name)
         
     def create_worker(self, worker_type: str, *args) -> Vprocess:
-        if worker_type not in self.worker_classes.keys():
+        if worker_type not in self._worker_classes.keys():
             raise ValueError(f"Unknown worker type: {worker_type}")
-        return self.worker_classes.get(worker_type)(*args)
+        return self._worker_classes.get(worker_type)(self.shared_dict, self.lock, *args)
 
     def start_processes(self) -> None:
         for process_config in self.config["processes"]:
@@ -43,23 +44,20 @@ class Spawner:
             worker_instance = self.create_worker(worker_type, *args)
             p = multiprocessing.Process(target=worker_instance.run)
             p.start()
-            self.processes[name] = p
+            self._processes[name] = p
 
     def terminate_processes(self, names: List[str]) -> None:
         for name in names:
-            self.processes[name].terminate()
-            self.processes[name].join()
-            del self.processes[name]
+            self._processes[name].terminate()
+            self._processes[name].join()
+            del self._processes[name]
 
     def manage_processes(self) -> None:
         try:
             while True:
-                while self.pipe.poll():
-                    frame = self.pipe.recv()
-                    self.queue.append(frame)
                 time.sleep(0.04)
         except KeyboardInterrupt:
-            self.terminate_processes(list(self.processes.keys()))
+            self.terminate_processes(list(self._processes.keys()))
 
     def run(self):
         self.load_config()
