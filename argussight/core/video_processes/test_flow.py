@@ -2,6 +2,7 @@ import cv2
 import threading
 from collections import deque
 import time
+import multiprocessing
 
 import sys
 import os
@@ -50,8 +51,34 @@ def main():
     extract_thread.start()
 
     extract_thread.join()
+    
+    manager = multiprocessing.Manager()
+    lock = multiprocessing.Lock()
 
-    detector = FlowDetection((roi_x, roi_y, roi_width, roi_height))
+    shared_dict = manager.dict()
+
+    with lock:
+        shared_dict["frame_number"] = 0
+
+    detector = FlowDetection((roi_x, roi_y, roi_width, roi_height), shared_dict, lock)
+
+    process = multiprocessing.Process(target=detector.run)
+    process.start()
+
+    try:
+        while output_deque:
+            frame = output_deque.popleft()
+
+            with lock:
+                shared_dict['frame'] = frame.copy()
+                shared_dict['frame_number'] += 1
+
+            time.sleep(0.06)
+    except KeyboardInterrupt:
+        print("Interruptions: Stopping runner process")
+    finally:
+        process.terminate()
+        process.join()
     
     '''
     while len(output_deque)>=1:
@@ -64,7 +91,6 @@ def main():
 
         time.sleep(0.04)
     '''
-    detector.run(output_deque)
 
 if __name__ == "__main__":
     main()
