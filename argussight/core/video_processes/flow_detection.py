@@ -13,6 +13,7 @@ class FlowDetection(Vprocess):
         super().__init__(shared_dict, lock)
         self._roi = roi
         self._previous_frame = None
+        self._min_distance = 50
         self._p0 = None
         self._frame_format = FrameFormat.CV2 # this process needs a cv2 image format for computations
 
@@ -81,12 +82,20 @@ class FlowDetection(Vprocess):
                     a, b = new.ravel().astype(int)
                     frame = cv2.circle(frame, (a, b), 8, (0, 255, 0), 2)
             
-            if len(self._p0)<= 5:
+            if 0<len(self._p0)<= 5:
                 # Select new points if old ones moved out of frame
                 new_points = self.select_feature_points(gray_frame[y:y+h, x:x+w])
-                
+
                 if new_points is not None:
-                    self._p0 = np.concatenate([self._p0, new_points], axis=0) if self._p0 is not None else new_points
+                    # Filter new points based on the minimum distance
+                    for new_point in new_points:
+                        new_point = new_point.reshape(-1, 2)
+                        distances = np.sqrt(((self._p0 - new_point) ** 2).sum(axis=2))
+                        if np.min(distances) > self._min_distance:
+                            self._p0 = np.concatenate([self._p0, new_point.reshape(1,1,2)])
+            elif len(self._p0) == 0:
+                self._p0 = self.select_feature_points(gray_frame[y:y+h, x:x+w])
+
         else:
             self._previous_frame = None
         

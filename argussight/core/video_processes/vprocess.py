@@ -27,6 +27,8 @@ class Vprocess:
                 self.copy_frame(self.shared_dict["frame"], self.shared_dict["size"])
                 if self._current_frame_number != -1:
                     self._missed_frames += current_frame_number - self._current_frame_number - 1
+                    if current_frame_number > self._current_frame_number + 1:
+                        print(f"Frames Missed in Total: {self._missed_frames}")
                 else:
                     print(f"Started reading at frame {current_frame_number}")
                 self._current_frame_number = current_frame_number
