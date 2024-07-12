@@ -76,6 +76,6 @@ class Collector:
                 if message["data"] == b'save queue':
                     self.save_queue()
                     continue
-
-                frame = json.loads(message["data"])
-                self.process_frame(frame)
+                else:
+                    frame = json.loads(message["data"])
+                    self.process_frame(frame)

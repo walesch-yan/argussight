@@ -5,6 +5,7 @@ from PIL import Image
 from typing import Tuple
 import cv2
 import numpy as np
+from datetime import datetime
 
 class FrameFormat(Enum):
     CV2= 'cv2'
@@ -18,12 +19,18 @@ class Vprocess:
         self._current_frame_number = -1
         self._current_frame = None
         self._missed_frames = 0
-        self._frame_format: FrameFormat = FrameFormat.RAW
+
+        # Please change the following two variables (if you need to) in your subclasses (not here!)
+        self._frame_format: FrameFormat = FrameFormat.RAW # Format your frames should convert to
+        self._time_stamp_used = False # If you need self._current_frame_time, set this to true
     
     def read_frame(self) -> bool:
         with self.lock:
             current_frame_number = self.shared_dict["frame_number"]
             if self._current_frame_number != current_frame_number:
+                if self._time_stamp_used:
+                    self.format_time(self.shared_dict['time_stamp'])
+
                 self.copy_frame(self.shared_dict["frame"], self.shared_dict["size"])
                 if self._current_frame_number != -1:
                     self._missed_frames += current_frame_number - self._current_frame_number - 1
@@ -35,6 +42,10 @@ class Vprocess:
                 return True
         
         return False
+    
+    def format_time(self, timestamp: str) -> None:
+        date_format = "%H:%M:%S.%f"
+        self._current_frame_time = datetime.strptime(timestamp, date_format)
     
     def copy_frame(self, frame_data: bytes, frame_size: Tuple[int, int, int]) -> None:
         match self._frame_format:
