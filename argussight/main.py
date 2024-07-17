@@ -87,10 +87,16 @@ def run() -> None:
         }
     )
 
-    receiver_pipe, sender_pipe = multiprocessing.Pipe(False)
+    manager = multiprocessing.Manager()
+    lock = multiprocessing.Lock()
 
-    collector = Collector(config, sender_pipe)
-    spawner = Spawner(receiver_pipe, int(args.queue_max_length))
+    shared_dict = manager.dict()
+
+    with lock:
+        shared_dict["frame_number"] = -1
+
+    collector = Collector(config, shared_dict, lock)
+    spawner = Spawner(shared_dict, lock)
 
     collection_process = multiprocessing.Process(target=collector.start)
     spawning_process = multiprocessing.Process(target=spawner.run)
