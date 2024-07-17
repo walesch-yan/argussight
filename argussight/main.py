@@ -3,7 +3,7 @@ import multiprocessing
 
 from argussight.core.config import get_config_from_dict, SaveFormat
 from argussight.core.collector import Collector
-from argussight.core.spawner import Spawner
+from argussight.grpc.server import serve
 
 def parse_args() -> None:
     opt_parser = argparse.ArgumentParser(description="mxcube argussight")
@@ -96,25 +96,24 @@ def run() -> None:
         shared_dict["frame_number"] = -1
 
     collector = Collector(config, shared_dict, lock)
-    spawner = Spawner(shared_dict, lock)
 
     collection_process = multiprocessing.Process(target=collector.start)
-    spawning_process = multiprocessing.Process(target=spawner.run)
+    server = multiprocessing.Process(target=serve, args=(shared_dict, lock))
 
     try:
         collection_process.start()
-        spawning_process.start()
+        server.start()
 
         collection_process.join()
-        spawning_process.join()
+        server.join()
 
     except KeyboardInterrupt:
         print("Terminating processes...")
         collection_process.terminate()
-        spawning_process.terminate()
+        server.terminate()
 
         collection_process.join()
-        spawning_process.join()
+        server.join()
         print("Termination completed")
 
 if __name__ == "__main__":
