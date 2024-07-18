@@ -12,6 +12,7 @@ from argussight.core.spawner import Spawner, ProcessError
 class SpawnerService(pb2_grpc.SpawnerServiceServicer):
     def __init__(self, shared_dict: DictProxy, lock: Lock):
         self.spawner = Spawner(shared_dict, lock)
+        self._min_waiting_time = 1
 
     def StartProcesses(self, request, context):
         try:
@@ -41,7 +42,9 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
 
     def ManageProcesses(self, request, context):
         try:
-            self.spawner.manage_processes(request.name, request.message)
+            if request.wait_time < self._min_waiting_time:
+                return pb2.ManageProcessesResponse(status="failure", error_message=f"Please choose wait_time to be larger than {self._min_waiting_time}")
+            self.spawner.manage_process(request.name, request.order, request.wait_time, [json.loads(arg) for arg in request.args])
             return pb2.ManageProcessesResponse(status="success")
         except ProcessError as e:
             return pb2.ManageProcessesResponse(status="failure", error_message=str(e))

@@ -9,6 +9,7 @@ from multiprocessing.managers import DictProxy
 from multiprocessing.synchronize import Lock
 from datetime import datetime
 from collections import deque
+from multiprocessing import Queue
 
 class Point:
     def __init__(self, position: Tuple[int, int], creation_time: datetime) -> None:
@@ -139,7 +140,7 @@ class FlowDetection(Vprocess):
 
         return frame
     
-    def run(self):
+    def run(self, command_queue: Queue, response_queue: Queue) -> None:
         processed_frame = None
         while True:
             change = self.read_frame()

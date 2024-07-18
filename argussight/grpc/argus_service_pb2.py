@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13\x61rgus_service.proto\x12\nargussight\"C\n\x15StartProcessesRequest\x12*\n\tprocesses\x18\x01 \x03(\x0b\x32\x17.argussight.ProcessInfo\"?\n\x16StartProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t\"*\n\x19TerminateProcessesRequest\x12\r\n\x05names\x18\x01 \x03(\t\"C\n\x1aTerminateProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t\"7\n\x16ManageProcessesRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\"@\n\x17ManageProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t\"7\n\x0bProcessInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x03 \x03(\t2\xaa\x02\n\x0eSpawnerService\x12W\n\x0eStartProcesses\x12!.argussight.StartProcessesRequest\x1a\".argussight.StartProcessesResponse\x12\x63\n\x12TerminateProcesses\x12%.argussight.TerminateProcessesRequest\x1a&.argussight.TerminateProcessesResponse\x12Z\n\x0fManageProcesses\x12\".argussight.ManageProcessesRequest\x1a#.argussight.ManageProcessesResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13\x61rgus_service.proto\x12\nargussight\"C\n\x15StartProcessesRequest\x12*\n\tprocesses\x18\x01 \x03(\x0b\x32\x17.argussight.ProcessInfo\"?\n\x16StartProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t\"*\n\x19TerminateProcessesRequest\x12\r\n\x05names\x18\x01 \x03(\t\"C\n\x1aTerminateProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t\"V\n\x16ManageProcessesRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05order\x18\x02 \x01(\t\x12\x11\n\twait_time\x18\x03 \x01(\x05\x12\x0c\n\x04\x61rgs\x18\x04 \x03(\t\"@\n\x17ManageProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t\"7\n\x0bProcessInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x03 \x03(\t2\xaa\x02\n\x0eSpawnerService\x12W\n\x0eStartProcesses\x12!.argussight.StartProcessesRequest\x1a\".argussight.StartProcessesResponse\x12\x63\n\x12TerminateProcesses\x12%.argussight.TerminateProcessesRequest\x1a&.argussight.TerminateProcessesResponse\x12Z\n\x0fManageProcesses\x12\".argussight.ManageProcessesRequest\x1a#.argussight.ManageProcessesResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -30,11 +30,11 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_TERMINATEPROCESSESRESPONSE']._serialized_start=213
   _globals['_TERMINATEPROCESSESRESPONSE']._serialized_end=280
   _globals['_MANAGEPROCESSESREQUEST']._serialized_start=282
-  _globals['_MANAGEPROCESSESREQUEST']._serialized_end=337
-  _globals['_MANAGEPROCESSESRESPONSE']._serialized_start=339
-  _globals['_MANAGEPROCESSESRESPONSE']._serialized_end=403
-  _globals['_PROCESSINFO']._serialized_start=405
-  _globals['_PROCESSINFO']._serialized_end=460
-  _globals['_SPAWNERSERVICE']._serialized_start=463
-  _globals['_SPAWNERSERVICE']._serialized_end=761
+  _globals['_MANAGEPROCESSESREQUEST']._serialized_end=368
+  _globals['_MANAGEPROCESSESRESPONSE']._serialized_start=370
+  _globals['_MANAGEPROCESSESRESPONSE']._serialized_end=434
+  _globals['_PROCESSINFO']._serialized_start=436
+  _globals['_PROCESSINFO']._serialized_end=491
+  _globals['_SPAWNERSERVICE']._serialized_start=494
+  _globals['_SPAWNERSERVICE']._serialized_end=792
 # @@protoc_insertion_point(module_scope)

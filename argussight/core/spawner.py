@@ -7,13 +7,9 @@ from typing import List, Dict, Any, Union
 import importlib
 import os
 import Levenshtein
+import queue
 
-from argussight.core.video_processes.vprocess import Vprocess
-
-class ProcessError(Exception):
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
-        self.message = message
+from argussight.core.video_processes.vprocess import Vprocess, ProcessError
 
 def find_close_key(d: dict, key: str, max_distance: int = 3) -> Union[str, None]:
     min_distance = float('inf')
@@ -57,9 +53,15 @@ class Spawner:
         
     def create_worker(self, worker_type: str, *args) -> Vprocess:
         return self._worker_classes.get(worker_type)(self.shared_dict, self.lock, *args)
+    
+    def add_process(self, name: str, process: multiprocessing.Process, command_queue: multiprocessing.Queue, response_queue: multiprocessing.Queue) -> None:
+        self._processes[name] = {
+            "process_instance": process,
+            "command_queue": command_queue,
+            "response_queue": response_queue,
+        }
 
     def start_processes(self, processes: List[Dict[str, Any]]) -> None:
-        # First check for uniqueness of name and existance of type
         for process in processes:
             worker_type = process["type"]
             name = process["name"]
@@ -73,29 +75,44 @@ class Spawner:
             name = process["name"]
             args = process["args"] if process['args'] else []
             worker_instance = self.create_worker(worker_type, *args)
-            p = multiprocessing.Process(target=worker_instance.run)
+            command_queue = multiprocessing.Queue()
+            response_queue = multiprocessing.Queue()
+            p = multiprocessing.Process(target=worker_instance.run, args=(command_queue, response_queue))
             p.start()
             print(f"started {name} of type {worker_type}")
-            self._processes[name] = p
+            self.add_process(name, p, command_queue, response_queue)
+
+    # check if process is running otherwise throw ProcessError
+    def check_for_running_process(self, name: str) -> None:
+        if name not in self._processes:
+            errorMessage = f"{name} is not a running process."
+            closest_key = find_close_key(self._processes, name)
+            if closest_key:
+                errorMessage += f" Did you mean: {closest_key}"
+
+            raise ProcessError(errorMessage)
 
     def terminate_processes(self, names: List[str]) -> None:
         for name in names:
-            if name not in self._processes:
-                errorMessage = f"{name} is not a running process."
-                closest_key = find_close_key(self._processes, name)
-                if closest_key:
-                    errorMessage += f" Did you mean: {closest_key}"
-
-                raise ProcessError(errorMessage)
+            self.check_for_running_process(name)
+        
         for name in names:
-            self._processes[name].terminate()
-            self._processes[name].join()
+            p = self._processes[name]["process_instance"]
+            p.terminate()
+            p.join()
             del self._processes[name]
             print(f"terminated {name}")
 
-    def manage_processes(self) -> None:
+    def manage_process(self, name, order, max_wait_time, args) -> None:
+        self.check_for_running_process(name)
+
+        self._processes[name]["command_queue"].put((order, args))
+
         try:
-            while True:
-                time.sleep(0.04)
-        except KeyboardInterrupt:
-            self.terminate_processes(list(self._processes.keys()))
+            result = self._processes[name]["response_queue"].get(timeout = max_wait_time)
+            if isinstance(result, Exception):
+                raise result
+            return
+        except queue.Empty:
+            self.terminate_processes([name])
+            raise ProcessError(f"Process {name} did not respond in given time ({max_wait_time} s) and was hence terminated")
