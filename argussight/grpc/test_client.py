@@ -1,22 +1,32 @@
 import grpc
 import argussight.grpc.argus_service_pb2 as pb2
 import argussight.grpc.argus_service_pb2_grpc as pb2_grpc
+import json
+import time
 
 def run():
     channel = grpc.insecure_channel('localhost:50051')
     stub = pb2_grpc.SpawnerServiceStub(channel)
 
+    processes = [
+        pb2.ProcessInfo(
+            name='Remote Test',
+            type='flow_detection',
+            args=[json.dumps([500,500,300,450])]
+        )
+    ]
+
     # Start processes
-    response = stub.StartProcesses(pb2.StartProcessesRequest())
-    print(response.message)
+    print("Sending start request for test")
+    response = stub.StartProcesses(pb2.StartProcessesRequest(processes=processes))
+    print(response.status, response.error_message)
 
-    # Terminate processes
-    response = stub.TerminateProcesses(pb2.TerminateProcessesRequest(names=['process1', 'process2']))
-    print(response.message)
+    print("Waiting for 5 seconds...")
+    time.sleep(5)
 
-    # Manage processes
-    response = stub.ManageProcesses(pb2.ManageProcessesRequest())
-    print(response.message)
+    print("Sending termination request for test")
+    response = stub.TerminateProcesses(pb2.TerminateProcessesRequest(names=["Remote Test"]))
+    print(response.status, response.error_message)
 
 if __name__ == '__main__':
     run()

@@ -5,26 +5,48 @@ import argussight.grpc.argus_service_pb2 as pb2
 import argussight.grpc.argus_service_pb2_grpc as pb2_grpc
 from multiprocessing.managers import DictProxy
 from multiprocessing.synchronize import Lock
+import json
 
-# Import your Spawner class here
-from argussight.core.spawner import Spawner
+from argussight.core.spawner import Spawner, ProcessError
 
 class SpawnerService(pb2_grpc.SpawnerServiceServicer):
     def __init__(self, shared_dict: DictProxy, lock: Lock):
         self.spawner = Spawner(shared_dict, lock)
 
     def StartProcesses(self, request, context):
-        self.spawner.load_config()
-        self.spawner.start_processes()
-        return pb2.StartProcessesResponse(message="Processes started successfully.")
+        try:
+            process_dicts = [
+                {
+                    'name': process.name,
+                    'type': process.type,
+                    'args': [json.loads(arg) for arg in process.args]
+                }
+                for process in request.processes
+            ]
+            self.spawner.start_processes(process_dicts)
+            return pb2.StartProcessesResponse(status="success")
+        except ProcessError as e:
+            return pb2.StartProcessesResponse(status="failure", error_message=str(e))
+        except Exception as e:
+            return pb2.StartProcessesResponse(status="failure", error_message=f"Unexpected error: {str(e)}")
 
     def TerminateProcesses(self, request, context):
-        self.spawner.terminate_processes(request.names)
-        return pb2.TerminateProcessesResponse(message="Processes terminated successfully.")
+        try:
+            self.spawner.terminate_processes(request.names)
+            return pb2.TerminateProcessesResponse(status="success")
+        except ProcessError as e:
+            return pb2.TerminateProcessesResponse(status="failure", error_message=str(e))
+        except Exception as e:
+            return pb2.TerminateProcessesResponse(status="failure", error_message=f"Unexpected error: {str(e)}")
 
     def ManageProcesses(self, request, context):
-        self.spawner.manage_processes()
-        return pb2.ManageProcessesResponse(message="Process management started successfully.")
+        try:
+            self.spawner.manage_processes(request.name, request.message)
+            return pb2.ManageProcessesResponse(status="success")
+        except ProcessError as e:
+            return pb2.ManageProcessesResponse(status="failure", error_message=str(e))
+        except Exception as e:
+            return pb2.ManageProcessesResponse(status="failure", error_message=f"Unexpected error: {str(e)}")
 
 def serve(shared_dict: DictProxy, lock: Lock):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
