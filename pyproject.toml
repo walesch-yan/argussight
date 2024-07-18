@@ -16,6 +16,7 @@ redis = "4.6.0"
 pyyaml = "^6.0.1"
 grpcio = "^1.38.0"
 grpcio-tools = "^1.38.0"
+python-levenshtein = "^0.25.1"
 
 [tool.poetry.scripts]
 argussight = "argussight.main:run"

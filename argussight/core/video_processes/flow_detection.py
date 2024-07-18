@@ -90,7 +90,7 @@ class FlowDetection(Vprocess):
         self._speeds.append(current_frame_average_speed)
         return int(sum(self._speeds)/len(self._speeds))
 
-    def detect_and_track_features(self, frame, time_stamp) -> None:            
+    def detect_and_track_features(self, frame, time_stamp: datetime) -> None:            
         x, y, w, h = self._roi
         
         if self._previous_frame is None:

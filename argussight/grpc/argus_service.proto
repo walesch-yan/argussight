@@ -8,19 +8,34 @@ service SpawnerService {
     rpc ManageProcesses (ManageProcessesRequest) returns (ManageProcessesResponse);
 }
 
-message StartProcessesRequest {}
+message StartProcessesRequest {
+    repeated ProcessInfo processes = 1;
+}
+
 message StartProcessesResponse {
-    string message = 1;
+    string status = 1;
+    string error_message = 2;
 }
 
 message TerminateProcessesRequest {
     repeated string names = 1;
 }
 message TerminateProcessesResponse {
-    string message = 1;
+    string status = 1;
+    string error_message = 2;
 }
 
-message ManageProcessesRequest {}
+message ManageProcessesRequest {
+    string name = 1;
+    string message = 2;
+}
 message ManageProcessesResponse {
-    string message = 1;
+    string status = 1;
+    string error_message = 2;
+}
+
+message ProcessInfo{
+    string name = 1;
+    string type = 2;
+    repeated string args = 3; // JSON-encoded strings
 }
