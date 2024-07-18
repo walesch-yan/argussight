@@ -17,11 +17,18 @@ def run():
     ]
 
     # Start processes
-    print("Sending start request for test")
+    print("Sending start request for flow_detection")
     response = stub.StartProcesses(pb2.StartProcessesRequest(processes=processes))
     print(response.status, response.error_message)
 
     print("Waiting for 5 seconds...")
+    time.sleep(5)
+
+    print("Sending handle request for test process")
+    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='initial test', order='print', wait_time=5, args=[json.dumps("Yay, it works!")]))
+    print(response.status, response.error_message)
+
+    print("Waiting 5 seconds...")
     time.sleep(5)
 
     print("Sending termination request for test")

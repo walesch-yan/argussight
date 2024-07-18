@@ -6,6 +6,13 @@ from typing import Tuple
 import cv2
 import numpy as np
 from datetime import datetime
+from multiprocessing import Queue
+import queue
+
+class ProcessError(Exception):
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message
 
 class FrameFormat(Enum):
     CV2= 'cv2'
@@ -20,9 +27,11 @@ class Vprocess:
         self._current_frame = None
         self._missed_frames = 0
 
-        # Please change the following two variables (if you need to) in your subclasses (not here!)
+        # Please change the following three variables (if you need to) in your subclasses (not here!)
         self._frame_format: FrameFormat = FrameFormat.RAW # Format your frames should convert to
         self._time_stamp_used = False # If you need self._current_frame_time, set this to true
+        self._commands = {} # Dictionary of all commands that can be executed via command_queue
+        self._command_timeout = 1 # Time the process waits for new commands to arrive in seconds
     
     def read_frame(self) -> bool:
         with self.lock:
@@ -59,12 +68,34 @@ class Vprocess:
             case _:
                 raise TypeError(f"FrameFormat has no type: {self._frame_format}")
 
-    def run(self) -> None:
-        pass
+    def run(self, command_queue: Queue, response_queue: Queue) -> None:
+        while True:
+            try:
+                order, args = command_queue.get(timeout=self._command_timeout)
+                self.handle_command(order, response_queue, args)
+            except queue.Empty:
+                continue
+
+
+    def handle_command(self, order: str, response_queue: Queue, args) -> None:
+        if order not in self._commands:
+            response_queue.put(ProcessError(f"Order {order} is not known for process of type {type(self)}."))
+            return
+        
+        try:
+            self._commands[order](*args)
+            response_queue.put("Order {order} succeeded")
+        except Exception as e:
+            response_queue.put(e)
 
 class Test(Vprocess):
     def __init__(self, shared_dict: DictProxy = None, lock: Lock = None) -> None:
         super().__init__(shared_dict, lock)
+        self._commands["print"] = self.print
     
-    def run(self) -> None:
-        print("Test succeeded")
+    def run(self, command_queue: Queue, response_queue: Queue) -> None:
+        print("Running test process")
+        super().run(command_queue, response_queue)
+
+    def print(self, text:str ):
+        print(text)

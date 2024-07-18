@@ -27,7 +27,9 @@ message TerminateProcessesResponse {
 
 message ManageProcessesRequest {
     string name = 1;
-    string message = 2;
+    string order = 2;
+    int32 wait_time = 3;
+    repeated string args = 4; // JSON-encoded strings
 }
 message ManageProcessesResponse {
     string status = 1;
