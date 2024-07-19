@@ -8,6 +8,7 @@ import numpy as np
 from datetime import datetime
 from multiprocessing import Queue
 import queue
+import time
 
 class ProcessError(Exception):
     def __init__(self, message: str) -> None:
@@ -76,7 +77,6 @@ class Vprocess:
             except queue.Empty:
                 continue
 
-
     def handle_command(self, order: str, response_queue: Queue, args) -> None:
         if order not in self._commands:
             response_queue.put(ProcessError(f"Order {order} is not known for process of type {type(self)}."))
@@ -99,3 +99,4 @@ class Test(Vprocess):
 
     def print(self, text:str ):
         print(text)
+        time.sleep(2)

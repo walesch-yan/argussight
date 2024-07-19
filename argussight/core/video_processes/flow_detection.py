@@ -10,6 +10,7 @@ from multiprocessing.synchronize import Lock
 from datetime import datetime
 from collections import deque
 from multiprocessing import Queue
+import queue
 
 class Point:
     def __init__(self, position: Tuple[int, int], creation_time: datetime) -> None:
@@ -35,9 +36,15 @@ class FlowDetection(Vprocess):
         self._previous_frame = None
         self._min_distance = 50
         self._p0 = []
+        self._processed_frame = None
+        self._speeds = deque(maxlen=20)
+        self._commands = {
+            "change_roi": self.change_roi
+        }
+
         self._frame_format = FrameFormat.CV2 # this process needs a cv2 image (BGR) format for computations
         self._time_stamp_used = True # this process needs the current time_stamps for calculation the flow speed
-        self._speeds = deque(maxlen=20)
+        self._command_timeout = 0.04 # this process needs to handle incoming frames consecutavely hence low waiting time
 
         self.load_params()
         
@@ -141,17 +148,25 @@ class FlowDetection(Vprocess):
         return frame
     
     def run(self, command_queue: Queue, response_queue: Queue) -> None:
-        processed_frame = None
         while True:
-            change = self.read_frame()
-            if self._current_frame_number != 0:
-                processed_frame = self.detect_and_track_features(self._current_frame, self._current_frame_time) if change else processed_frame
-                if processed_frame is not None:
-                    cv2.imshow('Live Stream', processed_frame)
+            try:
+                order, args = command_queue.get(timeout=self._command_timeout)
+                self.handle_command(order, response_queue, args)
+            except queue.Empty:
+                change = self.read_frame()
+                if self._current_frame_number != 0:
+                    self._processed_frame = self.detect_and_track_features(self._current_frame, self._current_frame_time) if change else self._processed_frame
+                    if self._processed_frame is not None:
+                        cv2.imshow('Live Stream', self._processed_frame)
 
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
-            time.sleep(0.04)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
         
         cv2.destroyAllWindows()
+    
+    def change_roi(self, roi: Tuple[int, int, int, int]):
+        self._previous_frame = None
+        self._processed_frame = None
+        self._speeds = deque(maxlen=20)
+        self._p0 = []
+        self._roi = roi

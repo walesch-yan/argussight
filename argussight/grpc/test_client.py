@@ -25,7 +25,14 @@ def run():
     time.sleep(5)
 
     print("Sending handle request for test process")
-    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='initial test', order='print', wait_time=5, args=[json.dumps("Yay, it works!")]))
+    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Remote Test', order='change_roi', wait_time=5, args=[json.dumps([200, 200, 400, 500])]))
+    print(response.status, response.error_message)
+
+    print("Waiting for 5 seconds...")
+    time.sleep(5)
+
+    print("Sending handle request for test process")
+    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Remote Test', order='change_roi', wait_time=5, args=[json.dumps([500, 500, 300, 450])]))
     print(response.status, response.error_message)
 
     print("Waiting 5 seconds...")
