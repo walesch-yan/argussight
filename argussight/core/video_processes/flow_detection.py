@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
 from typing import Tuple
-import time
 import yaml
 import os
 from multiprocessing.managers import DictProxy

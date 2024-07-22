@@ -7,8 +7,9 @@ import importlib
 import os
 import Levenshtein
 import queue
-from datetime import datetime
+from argussight.core.manager import Manager
 import threading
+import inspect
 
 from argussight.core.video_processes.vprocess import Vprocess, ProcessError
 
@@ -37,6 +38,7 @@ class Spawner:
         self.shared_dict = shared_dict
         self.lock = lock
         self._managers_dict = {}
+        self._restricted_classes = []
         
         self.load_config()
 
@@ -49,10 +51,14 @@ class Spawner:
     def load_worker_classes(self):
         worker_classes_config = self.config['worker_classes']
         modules_path = self.config['modules_path']
-        for key, class_path in worker_classes_config.items():
+        for key, worker_class in worker_classes_config.items():
+            class_path = worker_class["location"]
             module_name, class_name = class_path.rsplit('.', 1)
             module = importlib.import_module(modules_path + '.' + module_name)
             self._worker_classes[key] = getattr(module, class_name)
+            if not worker_class["accessible"]:
+                self._restricted_classes.append(key)
+                print(self._restricted_classes)
         
     def create_worker(self, worker_type: str, *args) -> Vprocess:
         return self._worker_classes.get(worker_type)(self.shared_dict, self.lock, *args)
@@ -65,6 +71,32 @@ class Spawner:
             "type": worker_type,
         }
 
+    # This function checks if worker_type can be accessed
+    def check_restricted_access(self, worker_type: str) -> bool:
+        # First check if access is restricted
+        if worker_type not in self._restricted_classes:
+            return True
+        
+        # If access is restricted, check if the caller is the server
+        stack = inspect.stack()
+        
+        # The caller's frame will be two levels up in the stack:
+        # - The current frame
+        # - The frame of the function that called check_restricted_access
+        # - The frame of the function that called that function (the original caller)
+        caller_frame = stack[2]
+        
+        # Get the calling function's name and module
+        caller_module = inspect.getmodule(caller_frame.frame)
+        
+        # Check if the caller is a method in the same class
+        if caller_module and caller_module.__name__ == self.__class__.__module__:
+            caller_class = caller_frame.frame.f_locals.get('self')
+            if isinstance(caller_class, self.__class__):
+                return True
+        
+        return False
+
     def start_processes(self, processes: List[Dict[str, Any]]) -> None:
         for process in processes:
             worker_type = process["type"]
@@ -73,6 +105,9 @@ class Spawner:
                 raise ProcessError(f"Process names must be unique. '{name}' already exists. Either terminate '{name}' or choose a different unique name")
             if worker_type not in self._worker_classes:
                 raise ProcessError(f"Type {worker_type} does not exist")
+            # check if somebody tries to start a restricted worker type from outside this class
+            if not self.check_restricted_access(worker_type):
+                raise ProcessError(f"Worker of type {worker_type} can only be started by server.")
             
         for process in processes:
             worker_type = process["type"]
@@ -95,10 +130,20 @@ class Spawner:
                 errorMessage += f" Did you mean: {closest_key}"
 
             raise ProcessError(errorMessage)
+    
+    def find_process_in_config_by_name(self, name: str) -> Dict:
+        for process in self.config["processes"]:
+            if process["name"] == name:
+                return process
+        return None
 
     def terminate_processes(self, names: List[str]) -> None:
         for name in names:
             self.check_for_running_process(name)
+            worker_type = self._processes[name]["type"]
+            # check if somebody tries to kill a restricted worker type from outside this class
+            if not self.check_restricted_access(worker_type):
+                raise ProcessError(f"Worker of type {worker_type} can only be terminated by server.")
         
         for name in names:
             p = self._processes[name]["process_instance"]
@@ -107,6 +152,9 @@ class Spawner:
             p.join()
             del self._processes[name]
             print(f"terminated {name} of type {worker_type}")
+            if worker_type in self._restricted_classes and self.check_restricted_access(worker_type):
+                self.start_processes([self.find_process_in_config_by_name(name)])
+                print(f"Restarted {name} of type {worker_type}")
 
     def wait_for_manager(self, finished_event: threading.Event, failed_event: threading.Event, name: str, manager: threading.Thread) -> None:
         while manager.is_alive():
@@ -169,44 +217,3 @@ class Spawner:
             raise ProcessError(f"An error occured in process {name}. Process is no longer alive.")
         else:
             raise ProcessError(f"Process {name} is busy and could not start command in time. Try again later.")
-            
-class Manager():
-    def __init__(self, command_queue: multiprocessing.Queue, response_queue: multiprocessing.Queue, finished_event: threading.Event, failed_event: threading.Event) -> None:
-        self._commands_list = queue.Queue(maxsize=20) # commands that are waiting to be processed by Manager
-        self._command_queue = command_queue # commands that are sent to process for being processed
-        self._response_queue = response_queue
-        self._finished_event = finished_event
-        self._failed_event = failed_event
-
-    def receive_command(self, command: str, wait_time: int, processed_event: threading.Event, result_queue: queue.Queue, args) -> None:
-        if self._commands_list.full():
-            raise ProcessError(f"Cannot execute command {command}: too many commands in waiting list")
-        self._commands_list.put({
-            "command": command,
-            "max_wait_time": wait_time,
-            "time_stamp": datetime.now(),
-            "args": args,
-            "processed_event": processed_event,
-            "result_queue": result_queue,
-        })
-    
-    def handle_commands(self) -> None:
-        while not self._commands_list.empty():
-            command = self._commands_list.get()
-
-            # Check if command is alive
-            if (datetime.now() - command["time_stamp"]).total_seconds() > command["max_wait_time"]:
-                continue
-
-            self._command_queue.put((command["command"], command["args"]))
-            command["processed_event"].set()
-
-            try:
-                result = self._response_queue.get(timeout=command["max_wait_time"])
-                command["result_queue"].put(result)
-
-            except queue.Empty:
-                self._failed_event.set()
-                break
-        
-        self._finished_event.set()
