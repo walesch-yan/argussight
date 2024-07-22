@@ -1,10 +1,20 @@
 modules_path: argussight.core.video_processes
 
 worker_classes:
-  test: vprocess.Test
-  flow_detection: flow_detection.FlowDetection
+  test: 
+    location: vprocess.Test
+    accessible: True
+  flow_detection: 
+    location: flow_detection.FlowDetection
+    accessible: True
+  video_saver: 
+    location: video_saver.VideoSaver
+    accessible: False
 
 processes:
   - name: "initial test"
     type: test
     args: []
+  - name: "Saver"
+    type: video_saver
+    args: [200, logs]

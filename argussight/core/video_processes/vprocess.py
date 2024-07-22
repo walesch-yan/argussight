@@ -33,13 +33,14 @@ class Vprocess:
         self._time_stamp_used = False # If you need self._current_frame_time, set this to true
         self._commands = {} # Dictionary of all commands that can be executed via command_queue
         self._command_timeout = 1 # Time the process waits for new commands to arrive in seconds
+        self._date_format = "%H:%M:%S.%f"
     
     def read_frame(self) -> bool:
         with self.lock:
             current_frame_number = self.shared_dict["frame_number"]
             if self._current_frame_number != current_frame_number:
                 if self._time_stamp_used:
-                    self.format_time(self.shared_dict['time_stamp'])
+                    self._current_frame_time = datetime.strptime(self.shared_dict['time_stamp'], self._date_format)
 
                 self.copy_frame(self.shared_dict["frame"], self.shared_dict["size"])
                 if self._current_frame_number != -1:
@@ -52,10 +53,6 @@ class Vprocess:
                 return True
         
         return False
-    
-    def format_time(self, timestamp: str) -> None:
-        date_format = "%H:%M:%S.%f"
-        self._current_frame_time = datetime.strptime(timestamp, date_format)
     
     def copy_frame(self, frame_data: bytes, frame_size: Tuple[int, int, int]) -> None:
         match self._frame_format:

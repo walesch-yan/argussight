@@ -1,7 +1,7 @@
 import argparse
 import multiprocessing
 
-from argussight.core.config import get_config_from_dict, SaveFormat
+from argussight.core.config import get_config_from_dict
 from argussight.core.collector import Collector
 from argussight.grpc.server import serve
 
@@ -40,37 +40,10 @@ def parse_args() -> None:
         default='video-streamer',
     )
 
-    opt_parser.add_argument(
-        "-qml",
-        "--queue-max-length",
-        dest='queue_max_length',
-        help="maximal number of frames saved in the queue",
-        default="200",
-    )
-
-    opt_parser.add_argument(
-        "-s",
-        "--save",
-        dest="save_folder",
-        help="path to folder to save the queue",
-        default='./logs/queue',
-    )
-
-    opt_parser.add_argument(
-        "-f",
-        "--format",
-        dest="format",
-        help="Format to save the queue to. Allowed values: 'video', 'frames' or 'both'",
-        default='both',
-    )
-
     return opt_parser.parse_args()
 
 def run() -> None:
     args = parse_args()
-
-    if args.format not in SaveFormat._value2member_map_:
-        raise ValueError(f"Invalid value: {args.format}. Allowed values are: {[value.value for value in SaveFormat]}")
 
     config = get_config_from_dict(
         {
@@ -78,11 +51,6 @@ def run() -> None:
                 "host": args.host,
                 "port": args.port,
                 "channel": args.channel,
-            },
-            "queue":{
-                "save_folder": args.save_folder,
-                "max_length": args.queue_max_length,
-                "save_format": args.format 
             }
         }
     )
