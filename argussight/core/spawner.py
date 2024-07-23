@@ -154,7 +154,6 @@ class Spawner:
             print(f"terminated {name} of type {worker_type}")
             if worker_type in self._restricted_classes and self.check_restricted_access(worker_type):
                 self.start_processes([self.find_process_in_config_by_name(name)])
-                print(f"Restarted {name} of type {worker_type}")
 
     def wait_for_manager(self, finished_event: threading.Event, failed_event: threading.Event, name: str, manager: threading.Thread) -> None:
         while manager.is_alive():

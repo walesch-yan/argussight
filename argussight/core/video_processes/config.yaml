@@ -10,6 +10,9 @@ worker_classes:
   stream_buffer: 
     location: stream_buffer.StreamBuffer
     accessible: False
+  video_recorder:
+    location: video_recorder.Recorder
+    accessible: False
 
 processes:
   - name: "initial test"
@@ -18,3 +21,6 @@ processes:
   - name: "Saver"
     type: stream_buffer
     args: [200, logs]
+  - name: "Recorder"
+    type: video_recorder
+    args: [logs/recordings, temp]

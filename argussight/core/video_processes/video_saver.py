@@ -44,14 +44,14 @@ class VideoSaver(Vprocess):
         video_folder = os.path.join(save_folder, 'videos')
         if not os.path.exists(video_folder):
             os.makedirs(video_folder, exist_ok=True)
-        _, _, time_first = self.get_frame_from_element(iterable[0])
+        size_first, _, time_first = self.get_frame_from_element(iterable[0])
         _, _, time_last = self.get_frame_from_element(iterable[-1])
         output_file = os.path.join(video_folder, f"video_{time_first}-{time_last}.avi")
 
-        out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'MJPG') , 30, iterable[0]['size'])
+        out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'MJPG') , 30, size_first)
 
-        for frame in iterable:
-            size, data, _ = self.get_frame_from_element(frame)
+        for element in iterable:
+            size, data, _ = self.get_frame_from_element(element)
             img = Image.frombytes("RGB", size, data, "raw")
             open_cv_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
             out.write(open_cv_image)
@@ -65,11 +65,19 @@ class VideoSaver(Vprocess):
             raise ProcessError("Your path should not leave the main folder")
         print(f"saving video at {save_folder}")
         if save_format == SaveFormat.FRAMES.value or save_format == SaveFormat.BOTH.value:
-            frames_folder = os.path.join(save_folder, f"frames_{iterable[0]['time_stamp']}-{iterable[-1]['time_stamp']}")
+            _, _, time_first = self.get_frame_from_element(iterable[0])
+            _, _, time_last = self.get_frame_from_element(iterable[-1])
+            frames_folder = os.path.join(save_folder, f"frames_{time_first}-{time_last}")
             if not os.path.exists(frames_folder):
                 os.makedirs(frames_folder, exist_ok=True)
 
-            for frame in iterable:
+            for element in iterable:
+                size, data, time = self.get_frame_from_element(element)
+                frame = {
+                    "size": size,
+                    "frame": data,
+                    "time_stamp": time
+                }
                 self.save_frame(frame, frames_folder)
         
         if save_format == SaveFormat.VIDEO.value or save_format == SaveFormat.BOTH.value:
