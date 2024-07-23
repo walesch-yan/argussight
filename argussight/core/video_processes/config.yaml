@@ -7,8 +7,8 @@ worker_classes:
   flow_detection: 
     location: flow_detection.FlowDetection
     accessible: True
-  video_saver: 
-    location: video_saver.VideoSaver
+  stream_buffer: 
+    location: stream_buffer.StreamBuffer
     accessible: False
 
 processes:
@@ -16,5 +16,5 @@ processes:
     type: test
     args: []
   - name: "Saver"
-    type: video_saver
+    type: stream_buffer
     args: [200, logs]
