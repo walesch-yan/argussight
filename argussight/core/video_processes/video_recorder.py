@@ -20,7 +20,6 @@ def delete_all_files(folder_path: str) -> None:
     for file in files:
         try:
             os.remove(file)
-            print(f"Deleted: {file}")
         except Exception as e:
             print(f"Failed to delete {file}: {e}")
 

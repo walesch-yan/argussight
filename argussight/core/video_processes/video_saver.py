@@ -63,7 +63,6 @@ class VideoSaver(Vprocess):
         save_folder = os.path.join(self._main_save_folder, personnal_folder)
         if not self.is_within_main(save_folder):
             raise ProcessError("Your path should not leave the main folder")
-        print(f"saving video at {save_folder}")
         if save_format == SaveFormat.FRAMES.value or save_format == SaveFormat.BOTH.value:
             _, _, time_first = self.get_frame_from_element(iterable[0])
             _, _, time_last = self.get_frame_from_element(iterable[-1])
