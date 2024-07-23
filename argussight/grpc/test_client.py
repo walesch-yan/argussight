@@ -43,6 +43,20 @@ def run():
     response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Saver', order='save', wait_time=30, args=[json.dumps(SaveFormat.BOTH.value), json.dumps("./test")]))
     print(response.status, response.error_message)
 
+    print("Waiting for 5 seconds...")
+    time.sleep(5)
+
+    print("Sending handle request for start_recording process")
+    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Recorder', order='start', wait_time=30, args=[]))
+    print(response.status, response.error_message)
+
+    print("Waiting for 5 seconds...")
+    time.sleep(10)
+
+    print("Sending handle request for stop_recording process")
+    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Recorder', order='stop', wait_time=60, args=[json.dumps(SaveFormat.BOTH.value), json.dumps("./test")]))
+    print(response.status, response.error_message)
+
     print("Waiting 5 seconds...")
     time.sleep(5)
 
