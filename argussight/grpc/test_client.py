@@ -13,7 +13,7 @@ def run():
         pb2.ProcessInfo(
             name='Remote Test',
             type='flow_detection',
-            args=[json.dumps([500,500,300,450])]
+            args=[json.dumps([600,500,100,450])]
         )
     ]
 
@@ -33,7 +33,7 @@ def run():
     time.sleep(5)
 
     print("Sending handle request for test process")
-    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Remote Test', order='change_roi', wait_time=5, args=[json.dumps([500, 500, 300, 450])]))
+    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Remote Test', order='change_roi', wait_time=5, args=[json.dumps([550, 450, 200, 500])]))
     print(response.status, response.error_message)
 
     print("Waiting for 5 seconds...")
