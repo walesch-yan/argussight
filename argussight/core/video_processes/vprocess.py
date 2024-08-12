@@ -2,7 +2,7 @@ from multiprocessing.managers import DictProxy
 from multiprocessing.synchronize import Lock
 from enum import Enum
 from PIL import Image
-from typing import Tuple
+from typing import Tuple, Dict, Any
 import cv2
 import numpy as np
 from datetime import datetime
@@ -31,10 +31,14 @@ class Vprocess:
         # Please change the following three variables (if you need to) in your subclasses (not here!)
         self._frame_format: FrameFormat = FrameFormat.RAW # Format your frames should convert to
         self._time_stamp_used = False # If you need self._current_frame_time, set this to true
-        self._commands = {} # Dictionary of all commands that can be executed via command_queue
+        self._commands = self.create_commands_dict() # Dictionary of all commands that can be executed via command_queue
         self._command_timeout = 1 # Time the process waits for new commands to arrive in seconds
         self._date_format = "%H:%M:%S.%f"
-    
+
+    @classmethod
+    def create_commands_dict(cls) -> Dict[str, Any]:
+        return {}
+        
     def read_frame(self) -> bool:
         with self.lock:
             current_frame_number = self.shared_dict["frame_number"]
@@ -80,7 +84,7 @@ class Vprocess:
             return
         
         try:
-            self._commands[order](*args)
+            self._commands[order](self, *args)
             response_queue.put("Order {order} succeeded")
         except Exception as e:
             response_queue.put(e)

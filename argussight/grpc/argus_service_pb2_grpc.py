@@ -54,6 +54,11 @@ class SpawnerServiceStub(object):
                 request_serializer=argus__service__pb2.ManageProcessesRequest.SerializeToString,
                 response_deserializer=argus__service__pb2.ManageProcessesResponse.FromString,
                 _registered_method=True)
+        self.GetProcesses = channel.unary_unary(
+                '/argussight.SpawnerService/GetProcesses',
+                request_serializer=argus__service__pb2.GetProcessesRequest.SerializeToString,
+                response_deserializer=argus__service__pb2.GetProcessesResponse.FromString,
+                _registered_method=True)
 
 
 class SpawnerServiceServicer(object):
@@ -77,6 +82,12 @@ class SpawnerServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetProcesses(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_SpawnerServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -94,6 +105,11 @@ def add_SpawnerServiceServicer_to_server(servicer, server):
                     servicer.ManageProcesses,
                     request_deserializer=argus__service__pb2.ManageProcessesRequest.FromString,
                     response_serializer=argus__service__pb2.ManageProcessesResponse.SerializeToString,
+            ),
+            'GetProcesses': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetProcesses,
+                    request_deserializer=argus__service__pb2.GetProcessesRequest.FromString,
+                    response_serializer=argus__service__pb2.GetProcessesResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -177,6 +193,33 @@ class SpawnerService(object):
             '/argussight.SpawnerService/ManageProcesses',
             argus__service__pb2.ManageProcessesRequest.SerializeToString,
             argus__service__pb2.ManageProcessesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetProcesses(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/argussight.SpawnerService/GetProcesses',
+            argus__service__pb2.GetProcessesRequest.SerializeToString,
+            argus__service__pb2.GetProcessesResponse.FromString,
             options,
             channel_credentials,
             insecure,
