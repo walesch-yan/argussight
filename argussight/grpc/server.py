@@ -50,6 +50,25 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
             return pb2.ManageProcessesResponse(status="failure", error_message=str(e))
         except Exception as e:
             return pb2.ManageProcessesResponse(status="failure", error_message=f"Unexpected error: {str(e)}")
+        
+    def GetProcesses(self, request, context):
+        try:
+            running_processes, available_process_types = self.spawner.get_processes()
+            running_dict = {}
+            for name, process in running_processes.items():
+                current_commands = []
+                for key, args in process["commands"].items():
+                    current_commands.append(pb2.Command(command=key, args=args))
+                running_dict[name]= pb2.RunningProcessDictionary(
+                    type = process["type"],
+                    commands = current_commands,
+                )
+            available_dict = {}
+            for type, args in available_process_types.items():
+                available_dict[type] = pb2.InitArgs(args=args)
+            return pb2.GetProcessesResponse(status="success", running_processes=running_dict, available_process_types=available_dict)
+        except Exception as e:
+            return pb2.GetProcessesResponse(status="failure", error_message=f"Unexpected error: {str(e)}")
 
 def serve(shared_dict: DictProxy, lock: Lock):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

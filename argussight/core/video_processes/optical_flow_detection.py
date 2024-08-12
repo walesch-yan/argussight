@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
-from typing import Tuple
+from typing import Tuple, Dict, Any
 import yaml
 import os
 from multiprocessing.managers import DictProxy
@@ -15,9 +15,6 @@ class OpticalFlowDetection(Vprocess):
     def __init__(self, shared_dict: DictProxy, lock: Lock, roi: Tuple[int, int, int, int]) -> None:
         super().__init__(shared_dict, lock)
         self._roi = roi
-        self._commands = {
-            "change_roi": self.change_roi
-        }
         self._previous_frame = None
         self._processed_frame = None
         self._speeds = []
@@ -29,6 +26,12 @@ class OpticalFlowDetection(Vprocess):
         self._command_timeout = 0.02
 
         self.load_params()
+    
+    @classmethod
+    def create_commands_dict(cls) -> Dict[str, Any]:
+        return {
+            "change_roi": cls.change_roi
+        }
     
     def load_params(self) -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))

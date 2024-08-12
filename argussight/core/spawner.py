@@ -216,3 +216,34 @@ class Spawner:
             raise ProcessError(f"An error occured in process {name}. Process is no longer alive.")
         else:
             raise ProcessError(f"Process {name} is busy and could not start command in time. Try again later.")
+    
+    #WiP
+    def get_processes(self):
+        running_processes = {}
+        for uname, process in self._processes.items():
+            type = process["type"]
+            current_class = self._worker_classes[type]
+            commands = {}
+            for key, command in current_class.create_commands_dict().items():
+                signature = inspect.signature(command)
+                commands[key] = []
+                for name, _ in signature.parameters.items():
+                    if name not in ["self", "cls"]:
+                        commands[key].append(name)
+            running_processes[uname] = {
+                "type": type,
+                "commands": commands,
+            }
+
+        available_types = [type for type in self._worker_classes if type not in self._restricted_classes]
+        available_process_types = {}
+        for type in available_types:
+            current_class = self._worker_classes[type]
+            InitArgs = []
+            signature = inspect.signature(current_class.__init__)
+            for name, _ in signature.parameters.items():
+                if name not in ["self", "cls", "shared_dict", "lock"]:
+                    InitArgs.append(name)
+            available_process_types[type] = InitArgs
+        return running_processes, available_process_types
+    

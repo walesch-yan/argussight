@@ -17,6 +17,18 @@ def run():
         )
     ]
 
+    # Get status
+    print("Sending get Status request")
+    try:
+        response = stub.GetProcesses(pb2.GetProcessesRequest())
+    except Exception as e:
+        print(e)
+    print(response.status, response.error_message)
+    print(response.running_processes, response.available_process_types)
+
+    print("Waiting for 5 seconds...")
+    time.sleep(5)
+    
     # Start processes
     print("Sending start request for flow_detection")
     response = stub.StartProcesses(pb2.StartProcessesRequest(processes=processes))

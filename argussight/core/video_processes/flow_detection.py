@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
-from typing import Tuple
+from typing import Tuple, Dict, Any
 import yaml
 import os
 from multiprocessing.managers import DictProxy
@@ -37,15 +37,18 @@ class FlowDetection(Vprocess):
         self._p0 = []
         self._processed_frame = None
         self._speeds = deque(maxlen=20)
-        self._commands = {
-            "change_roi": self.change_roi
-        }
 
         self._frame_format = FrameFormat.CV2 # this process needs a cv2 image (BGR) format for computations
         self._time_stamp_used = True # this process needs the current time_stamps for calculation the flow speed
         self._command_timeout = 0.04 # this process needs to handle incoming frames consecutavely hence low waiting time
 
         self.load_params()
+
+    @classmethod
+    def create_commands_dict(cls) -> Dict[str, Any]:
+        return {
+            "change_roi": cls.change_roi
+        }
         
     def load_params(self) -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))

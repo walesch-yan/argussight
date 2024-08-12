@@ -26,15 +26,18 @@ def delete_all_files(folder_path: str) -> None:
 class Recorder(VideoSaver):
     def __init__(self, shared_dict: DictProxy, lock: Lock, main_save_folder: str, temp_folder: str) -> None:
         super().__init__(shared_dict, lock, main_save_folder)
-        self._commands = {
-            "start": self.start_record,
-            "stop": self.stop_record
-        }
         self._recording = False
         self._temp_folder = temp_folder
 
         # Make sure that there are no files in the temp folder from old recording failures
         delete_all_files(self._temp_folder)
+
+    @classmethod
+    def create_commands_dict(cls) -> Dict[str, Any]:
+        return {
+            "start": cls.start_record,
+            "stop": cls.stop_record,
+        }
 
     def add_to_iterable(self, frame: Dict) -> None:
         if not os.path.exists(self._temp_folder):
