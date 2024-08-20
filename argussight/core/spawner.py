@@ -32,7 +32,7 @@ def find_close_key(d: dict, key: str, max_distance: int = 3) -> Union[str, None]
 class Spawner:
     def __init__(self, shared_dict: DictProxy, lock: Lock) -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self._config_file = os.path.join(current_dir, 'video_processes/config.yaml')
+        self._config_file = os.path.join(current_dir, 'configurations/config.yaml')
         self._processes = {}
         self._worker_classes = {}
         self.shared_dict = shared_dict
@@ -58,7 +58,6 @@ class Spawner:
             self._worker_classes[key] = getattr(module, class_name)
             if not worker_class["accessible"]:
                 self._restricted_classes.append(key)
-                print(self._restricted_classes)
         
     def create_worker(self, worker_type: str, *args) -> Vprocess:
         return self._worker_classes.get(worker_type)(self.shared_dict, self.lock, *args)
