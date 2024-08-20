@@ -5,13 +5,13 @@ worker_classes:
     location: vprocess.Test
     accessible: True
   flow_detection: 
-    location: optical_flow_detection.OpticalFlowDetection
+    location: detection_algorithms.optical_flow_detection.OpticalFlowDetection
     accessible: True
   stream_buffer: 
-    location: stream_buffer.StreamBuffer
+    location: savers.stream_buffer.StreamBuffer
     accessible: False
   video_recorder:
-    location: video_recorder.Recorder
+    location: savers.video_recorder.Recorder
     accessible: False
 
 processes:

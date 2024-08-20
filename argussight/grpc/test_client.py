@@ -3,7 +3,7 @@ import argussight.grpc.argus_service_pb2 as pb2
 import argussight.grpc.argus_service_pb2_grpc as pb2_grpc
 import json
 import time
-from argussight.core.video_processes.video_saver import SaveFormat
+from argussight.core.video_processes.savers.video_saver import SaveFormat
 
 def run():
     channel = grpc.insecure_channel('localhost:50051')

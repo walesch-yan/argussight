@@ -35,7 +35,7 @@ class OpticalFlowDetection(Vprocess):
     
     def load_params(self) -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        params_file = os.path.join(current_dir, '../configurations/optical_flow_detection.yaml')
+        params_file = os.path.join(current_dir, '../../configurations/optical_flow_detection.yaml')
         with open(params_file, 'r') as file:
             params = yaml.safe_load(file)
         

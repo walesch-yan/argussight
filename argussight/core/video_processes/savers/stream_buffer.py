@@ -1,6 +1,6 @@
 from multiprocessing.managers import DictProxy
 from multiprocessing.synchronize import Lock
-from argussight.core.video_processes.video_saver import VideoSaver
+from argussight.core.video_processes.savers.video_saver import VideoSaver
 from collections import deque
 from typing import Dict, Any
 
