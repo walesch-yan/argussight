@@ -266,7 +266,6 @@ class Spawner:
                 f"Process {name} is busy and could not start command in time. Try again later."
             )
 
-    # WiP
     def get_processes(self):
         running_processes = {}
         for uname, process in self._processes.items():
