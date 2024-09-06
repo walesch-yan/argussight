@@ -10,6 +10,11 @@ from multiprocessing.synchronize import Lock
 from datetime import datetime
 from multiprocessing import Queue
 import queue
+import subprocess
+import uuid
+import redis
+import base64
+import json
 
 
 class OpticalFlowDetection(Vprocess):
@@ -31,6 +36,8 @@ class OpticalFlowDetection(Vprocess):
         self._command_timeout = 0.02
 
         self.load_params()
+        self._currently_streaming = False
+        self._redis_client = redis.StrictRedis(host="localhost", port=6379)
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
@@ -161,12 +168,41 @@ class OpticalFlowDetection(Vprocess):
                         else self._processed_frame
                     )
                     if self._processed_frame is not None:
-                        cv2.imshow("Live Stream", self._processed_frame)
-
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
-                        break
-
-        cv2.destroyAllWindows()
+                        _, buffer = cv2.imencode(".jpg", self._processed_frame)
+                        raw_image_data = buffer.tobytes()
+                        frame_dict = {
+                            "data": base64.b64encode(raw_image_data).decode("utf-8"),
+                            "size": self._processed_frame.shape,
+                        }
+                        self._redis_client.publish(
+                            "optical_flow", json.dumps(frame_dict)
+                        )
+                        if not self._currently_streaming:
+                            self._video_stream_process = subprocess.Popen(
+                                [
+                                    "video-streamer",
+                                    "-uri",
+                                    "redis://localhost:6379",
+                                    "-hs",
+                                    "localhost",
+                                    "-p",
+                                    "9090",
+                                    "-q",
+                                    "4",
+                                    "-s",
+                                    str(self._processed_frame.shape)
+                                    .replace("(", "")
+                                    .replace(")", ""),
+                                    "-of",
+                                    "MPEG1",
+                                    "-id",
+                                    str(uuid.uuid1()),
+                                    "-irc",
+                                    "optical_flow",
+                                ],
+                                close_fds=True,
+                            )
+                            self._currently_streaming = True
 
     def change_roi(self, roi: Tuple[int, int, int, int]):
         self._previous_frame = None
