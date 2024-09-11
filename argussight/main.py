@@ -5,6 +5,7 @@ from argussight.core.config import get_config_from_dict
 from argussight.core.collector import Collector
 from argussight.grpc.server import serve
 
+
 def parse_args() -> None:
     opt_parser = argparse.ArgumentParser(description="mxcube argussight")
 
@@ -37,17 +38,18 @@ def parse_args() -> None:
         "--channel",
         dest="channel",
         help="channel of the video-stream",
-        default='video-streamer',
+        default="video-streamer",
     )
 
     return opt_parser.parse_args()
+
 
 def run() -> None:
     args = parse_args()
 
     config = get_config_from_dict(
         {
-            "redis":{
+            "redis": {
                 "host": args.host,
                 "port": args.port,
                 "channel": args.channel,
@@ -83,6 +85,7 @@ def run() -> None:
         collection_process.join()
         server.join()
         print("Termination completed")
+
 
 if __name__ == "__main__":
     run()

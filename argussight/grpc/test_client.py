@@ -5,15 +5,16 @@ import json
 import time
 from argussight.core.video_processes.savers.video_saver import SaveFormat
 
+
 def run():
-    channel = grpc.insecure_channel('localhost:50051')
+    channel = grpc.insecure_channel("localhost:50051")
     stub = pb2_grpc.SpawnerServiceStub(channel)
 
     processes = [
         pb2.ProcessInfo(
-            name='Remote Test',
-            type='flow_detection',
-            args=[json.dumps([600,500,100,450])]
+            name="Remote Test",
+            type="flow_detection",
+            args=[json.dumps([600, 500, 100, 450])],
         )
     ]
 
@@ -28,7 +29,7 @@ def run():
 
     print("Waiting for 5 seconds...")
     time.sleep(5)
-    
+
     # Start processes
     print("Sending start request for flow_detection")
     response = stub.StartProcesses(pb2.StartProcessesRequest(processes=processes))
@@ -38,43 +39,78 @@ def run():
     time.sleep(5)
 
     print("Sending handle request for test process")
-    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Remote Test', order='change_roi', wait_time=5, args=[json.dumps([200, 200, 400, 500])]))
+    response = stub.ManageProcesses(
+        pb2.ManageProcessesRequest(
+            name="Remote Test",
+            order="change_roi",
+            wait_time=5,
+            args=[json.dumps([200, 200, 400, 500])],
+        )
+    )
     print(response.status, response.error_message)
 
     print("Waiting for 5 seconds...")
     time.sleep(5)
 
     print("Sending handle request for test process")
-    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Remote Test', order='change_roi', wait_time=5, args=[json.dumps([550, 450, 200, 500])]))
+    response = stub.ManageProcesses(
+        pb2.ManageProcessesRequest(
+            name="Remote Test",
+            order="change_roi",
+            wait_time=5,
+            args=[json.dumps([550, 450, 200, 500])],
+        )
+    )
     print(response.status, response.error_message)
 
     print("Waiting for 5 seconds...")
     time.sleep(5)
 
     print("Sending handle request for saving process")
-    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Saver', order='save', wait_time=30, args=[json.dumps(SaveFormat.BOTH.value), json.dumps("./test")]))
+    response = stub.ManageProcesses(
+        pb2.ManageProcessesRequest(
+            name="Saver",
+            order="save",
+            wait_time=30,
+            args=[json.dumps(SaveFormat.BOTH.value), json.dumps("./test")],
+        )
+    )
     print(response.status, response.error_message)
 
     print("Waiting for 5 seconds...")
     time.sleep(5)
 
     print("Sending handle request for start_recording process")
-    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Recorder', order='start', wait_time=30, args=[]))
+    response = stub.ManageProcesses(
+        pb2.ManageProcessesRequest(
+            name="Recorder", order="start", wait_time=30, args=[]
+        )
+    )
     print(response.status, response.error_message)
 
     print("Waiting for 5 seconds...")
     time.sleep(10)
 
     print("Sending handle request for stop_recording process")
-    response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='Recorder', order='stop', wait_time=60, args=[json.dumps(SaveFormat.BOTH.value), json.dumps("./test")]))
+    response = stub.ManageProcesses(
+        pb2.ManageProcessesRequest(
+            name="Recorder",
+            order="stop",
+            wait_time=60,
+            args=[json.dumps(SaveFormat.BOTH.value), json.dumps("./test")],
+        )
+    )
     print(response.status, response.error_message)
 
     print("Waiting 5 seconds...")
     time.sleep(5)
 
     print("Sending termination request for test")
-    response = stub.TerminateProcesses(pb2.TerminateProcessesRequest(names=["Remote Test"]))
+    response = stub.TerminateProcesses(
+        pb2.TerminateProcessesRequest(names=["Remote Test"])
+    )
     print(response.status, response.error_message)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run()

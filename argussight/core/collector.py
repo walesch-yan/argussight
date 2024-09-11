@@ -5,8 +5,11 @@ import base64
 from multiprocessing.managers import DictProxy
 from multiprocessing.synchronize import Lock
 
+
 class Collector:
-    def __init__(self, config: CollectorConfiguration, shared_dict: DictProxy, lock: Lock):
+    def __init__(
+        self, config: CollectorConfiguration, shared_dict: DictProxy, lock: Lock
+    ):
         self._client = redis.StrictRedis(host=config.redis.host, port=config.redis.port)
         self._channel = config.redis.channel
         self.shared_dict = shared_dict
@@ -14,12 +17,12 @@ class Collector:
 
     def process_frame(self, frame: dict) -> None:
         # decode the received frame data before saving
-        frame["data"] = base64.b64decode(frame['data'])
+        frame["data"] = base64.b64decode(frame["data"])
         with self.lock:
-            self.shared_dict['frame'] = frame['data']
-            self.shared_dict['frame_number'] += 1
-            self.shared_dict['time_stamp'] = frame['time']
-            self.shared_dict['size'] = frame['size']
+            self.shared_dict["frame"] = frame["data"]
+            self.shared_dict["frame_number"] += 1
+            self.shared_dict["time_stamp"] = frame["time"]
+            self.shared_dict["size"] = frame["size"]
 
     def start(self) -> None:
         pubsub = self._client.pubsub()

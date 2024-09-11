@@ -1,18 +1,20 @@
+---
+
 modules_path: argussight.core.video_processes
 
 worker_classes:
-  test: 
+  test:
     location: vprocess.Test
-    accessible: True
-  flow_detection: 
+    accessible: true
+  flow_detection:
     location: detection_algorithms.optical_flow_detection.OpticalFlowDetection
-    accessible: True
-  stream_buffer: 
+    accessible: true
+  stream_buffer:
     location: savers.stream_buffer.StreamBuffer
-    accessible: False
+    accessible: false
   video_recorder:
     location: savers.video_recorder.Recorder
-    accessible: False
+    accessible: false
 
 processes:
   - name: "initial test"
