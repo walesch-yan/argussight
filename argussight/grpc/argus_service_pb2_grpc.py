@@ -5,28 +5,31 @@ import warnings
 
 import argussight.grpc.argus_service_pb2 as argus__service__pb2
 
-GRPC_GENERATED_VERSION = '1.65.1'
+GRPC_GENERATED_VERSION = "1.65.1"
 GRPC_VERSION = grpc.__version__
-EXPECTED_ERROR_RELEASE = '1.66.0'
-SCHEDULED_RELEASE_DATE = 'August 6, 2024'
+EXPECTED_ERROR_RELEASE = "1.66.0"
+SCHEDULED_RELEASE_DATE = "August 6, 2024"
 _version_not_supported = False
 
 try:
     from grpc._utilities import first_version_is_lower
-    _version_not_supported = first_version_is_lower(GRPC_VERSION, GRPC_GENERATED_VERSION)
+
+    _version_not_supported = first_version_is_lower(
+        GRPC_VERSION, GRPC_GENERATED_VERSION
+    )
 except ImportError:
     _version_not_supported = True
 
 if _version_not_supported:
     warnings.warn(
-        f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in argus_service_pb2_grpc.py depends on'
-        + f' grpcio>={GRPC_GENERATED_VERSION}.'
-        + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
-        + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
-        + f' This warning will become an error in {EXPECTED_ERROR_RELEASE},'
-        + f' scheduled for release on {SCHEDULED_RELEASE_DATE}.',
-        RuntimeWarning
+        f"The grpc package installed is at version {GRPC_VERSION},"
+        + f" but the generated code in argus_service_pb2_grpc.py depends on"
+        + f" grpcio>={GRPC_GENERATED_VERSION}."
+        + f" Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}"
+        + f" or downgrade your generated code using grpcio-tools<={GRPC_VERSION}."
+        + f" This warning will become an error in {EXPECTED_ERROR_RELEASE},"
+        + f" scheduled for release on {SCHEDULED_RELEASE_DATE}.",
+        RuntimeWarning,
     )
 
 
@@ -40,25 +43,29 @@ class SpawnerServiceStub(object):
             channel: A grpc.Channel.
         """
         self.StartProcesses = channel.unary_unary(
-                '/argussight.SpawnerService/StartProcesses',
-                request_serializer=argus__service__pb2.StartProcessesRequest.SerializeToString,
-                response_deserializer=argus__service__pb2.StartProcessesResponse.FromString,
-                _registered_method=True)
+            "/argussight.SpawnerService/StartProcesses",
+            request_serializer=argus__service__pb2.StartProcessesRequest.SerializeToString,
+            response_deserializer=argus__service__pb2.StartProcessesResponse.FromString,
+            _registered_method=True,
+        )
         self.TerminateProcesses = channel.unary_unary(
-                '/argussight.SpawnerService/TerminateProcesses',
-                request_serializer=argus__service__pb2.TerminateProcessesRequest.SerializeToString,
-                response_deserializer=argus__service__pb2.TerminateProcessesResponse.FromString,
-                _registered_method=True)
+            "/argussight.SpawnerService/TerminateProcesses",
+            request_serializer=argus__service__pb2.TerminateProcessesRequest.SerializeToString,
+            response_deserializer=argus__service__pb2.TerminateProcessesResponse.FromString,
+            _registered_method=True,
+        )
         self.ManageProcesses = channel.unary_unary(
-                '/argussight.SpawnerService/ManageProcesses',
-                request_serializer=argus__service__pb2.ManageProcessesRequest.SerializeToString,
-                response_deserializer=argus__service__pb2.ManageProcessesResponse.FromString,
-                _registered_method=True)
+            "/argussight.SpawnerService/ManageProcesses",
+            request_serializer=argus__service__pb2.ManageProcessesRequest.SerializeToString,
+            response_deserializer=argus__service__pb2.ManageProcessesResponse.FromString,
+            _registered_method=True,
+        )
         self.GetProcesses = channel.unary_unary(
-                '/argussight.SpawnerService/GetProcesses',
-                request_serializer=argus__service__pb2.GetProcessesRequest.SerializeToString,
-                response_deserializer=argus__service__pb2.GetProcessesResponse.FromString,
-                _registered_method=True)
+            "/argussight.SpawnerService/GetProcesses",
+            request_serializer=argus__service__pb2.GetProcessesRequest.SerializeToString,
+            response_deserializer=argus__service__pb2.GetProcessesResponse.FromString,
+            _registered_method=True,
+        )
 
 
 class SpawnerServiceServicer(object):
@@ -67,76 +74,81 @@ class SpawnerServiceServicer(object):
     def StartProcesses(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def TerminateProcesses(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def ManageProcesses(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def GetProcesses(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_SpawnerServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'StartProcesses': grpc.unary_unary_rpc_method_handler(
-                    servicer.StartProcesses,
-                    request_deserializer=argus__service__pb2.StartProcessesRequest.FromString,
-                    response_serializer=argus__service__pb2.StartProcessesResponse.SerializeToString,
-            ),
-            'TerminateProcesses': grpc.unary_unary_rpc_method_handler(
-                    servicer.TerminateProcesses,
-                    request_deserializer=argus__service__pb2.TerminateProcessesRequest.FromString,
-                    response_serializer=argus__service__pb2.TerminateProcessesResponse.SerializeToString,
-            ),
-            'ManageProcesses': grpc.unary_unary_rpc_method_handler(
-                    servicer.ManageProcesses,
-                    request_deserializer=argus__service__pb2.ManageProcessesRequest.FromString,
-                    response_serializer=argus__service__pb2.ManageProcessesResponse.SerializeToString,
-            ),
-            'GetProcesses': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetProcesses,
-                    request_deserializer=argus__service__pb2.GetProcessesRequest.FromString,
-                    response_serializer=argus__service__pb2.GetProcessesResponse.SerializeToString,
-            ),
+        "StartProcesses": grpc.unary_unary_rpc_method_handler(
+            servicer.StartProcesses,
+            request_deserializer=argus__service__pb2.StartProcessesRequest.FromString,
+            response_serializer=argus__service__pb2.StartProcessesResponse.SerializeToString,
+        ),
+        "TerminateProcesses": grpc.unary_unary_rpc_method_handler(
+            servicer.TerminateProcesses,
+            request_deserializer=argus__service__pb2.TerminateProcessesRequest.FromString,
+            response_serializer=argus__service__pb2.TerminateProcessesResponse.SerializeToString,
+        ),
+        "ManageProcesses": grpc.unary_unary_rpc_method_handler(
+            servicer.ManageProcesses,
+            request_deserializer=argus__service__pb2.ManageProcessesRequest.FromString,
+            response_serializer=argus__service__pb2.ManageProcessesResponse.SerializeToString,
+        ),
+        "GetProcesses": grpc.unary_unary_rpc_method_handler(
+            servicer.GetProcesses,
+            request_deserializer=argus__service__pb2.GetProcessesRequest.FromString,
+            response_serializer=argus__service__pb2.GetProcessesResponse.SerializeToString,
+        ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'argussight.SpawnerService', rpc_method_handlers)
+        "argussight.SpawnerService", rpc_method_handlers
+    )
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('argussight.SpawnerService', rpc_method_handlers)
+    server.add_registered_method_handlers(
+        "argussight.SpawnerService", rpc_method_handlers
+    )
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class SpawnerService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def StartProcesses(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def StartProcesses(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/argussight.SpawnerService/StartProcesses',
+            "/argussight.SpawnerService/StartProcesses",
             argus__service__pb2.StartProcessesRequest.SerializeToString,
             argus__service__pb2.StartProcessesResponse.FromString,
             options,
@@ -147,23 +159,26 @@ class SpawnerService(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def TerminateProcesses(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def TerminateProcesses(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/argussight.SpawnerService/TerminateProcesses',
+            "/argussight.SpawnerService/TerminateProcesses",
             argus__service__pb2.TerminateProcessesRequest.SerializeToString,
             argus__service__pb2.TerminateProcessesResponse.FromString,
             options,
@@ -174,23 +189,26 @@ class SpawnerService(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def ManageProcesses(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def ManageProcesses(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/argussight.SpawnerService/ManageProcesses',
+            "/argussight.SpawnerService/ManageProcesses",
             argus__service__pb2.ManageProcessesRequest.SerializeToString,
             argus__service__pb2.ManageProcessesResponse.FromString,
             options,
@@ -201,23 +219,26 @@ class SpawnerService(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def GetProcesses(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def GetProcesses(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/argussight.SpawnerService/GetProcesses',
+            "/argussight.SpawnerService/GetProcesses",
             argus__service__pb2.GetProcessesRequest.SerializeToString,
             argus__service__pb2.GetProcessesResponse.FromString,
             options,
@@ -228,4 +249,5 @@ class SpawnerService(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )

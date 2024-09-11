@@ -1,3 +1,5 @@
+---
+
 feature_params:
   maxCorners: 5
   qualityLevel: 0.7
@@ -5,6 +7,6 @@ feature_params:
   blockSize: 7
 
 lk_params:
-  winSize: [15,15]
+  winSize: [15, 15]
   maxLevel: 2
-  criteria: [3, 10, 0.03] # cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03
+  criteria: [3, 10, 0.03]

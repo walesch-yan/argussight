@@ -5,13 +5,24 @@ import threading
 import json
 import time
 
+
 def make_request(stub, request_data):
     try:
         print(f"Running {request_data}")
-        response = stub.ManageProcesses(pb2.ManageProcessesRequest(name='initial test', order='print', wait_time=5, args=[json.dumps(request_data)]))
-        print(f"Received response: {response.status, response.error_message} for {request_data}")
+        response = stub.ManageProcesses(
+            pb2.ManageProcessesRequest(
+                name="initial test",
+                order="print",
+                wait_time=5,
+                args=[json.dumps(request_data)],
+            )
+        )
+        print(
+            f"Received response: {response.status, response.error_message} for {request_data}"
+        )
     except grpc.RpcError as e:
         print(f"RPC error: {e} on {request_data}")
+
 
 def test_concurrent_requests(stub, num_requests):
     threads = []
@@ -24,10 +35,12 @@ def test_concurrent_requests(stub, num_requests):
     for thread in threads:
         thread.join()
 
+
 def run():
-    with grpc.insecure_channel('localhost:50051') as channel:
+    with grpc.insecure_channel("localhost:50051") as channel:
         stub = pb2_grpc.SpawnerServiceStub(channel)
         test_concurrent_requests(stub, 50)  # Adjust the number of requests as needed
+
 
 if __name__ == "__main__":
     run()
