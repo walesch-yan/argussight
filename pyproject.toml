@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<=3.12"
-numpy = ">=1.26.0"
+numpy = "^1.26.0"
 opencv-python = "4.10.0.84"
 pillow = "<10.0.0, >=9.4.0"
 pydantic = "1.10.16"
@@ -23,6 +23,8 @@ argussight = "argussight.main:run"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.8.0"
+sphinx = "^8.0.2"
+myst-parser = "^4.0.0"
 
 [build-system]
 requires = ["poetry-core"]
