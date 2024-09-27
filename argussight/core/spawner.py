@@ -48,7 +48,8 @@ class Spawner:
         with open(self._config_file, "r") as f:
             self.config = yaml.safe_load(f)
         self.load_worker_classes()
-        self.start_processes(self.config["processes"])
+        for process in self.config["processes"]:
+            self.start_process(process)
 
     def load_worker_classes(self):
         worker_classes_config = self.config["worker_classes"]
@@ -71,13 +72,18 @@ class Spawner:
         process: multiprocessing.Process,
         command_queue: multiprocessing.Queue,
         response_queue: multiprocessing.Queue,
+        stream_id: str,
     ) -> None:
         self._processes[name] = {
             "process_instance": process,
             "command_queue": command_queue,
             "response_queue": response_queue,
             "type": worker_type,
+            "stream_id": stream_id,
         }
+
+    def get_stream_id(self, process_name: str) -> str:
+        return self._processes[process_name]["stream_id"]
 
     # This function checks if worker_type can be accessed
     def check_restricted_access(self, worker_type: str) -> bool:
@@ -105,35 +111,32 @@ class Spawner:
 
         return False
 
-    def start_processes(self, processes: List[Dict[str, Any]]) -> None:
-        for process in processes:
-            worker_type = process["type"]
-            name = process["name"]
-            if name in self._processes:
-                raise ProcessError(
-                    f"Process names must be unique. '{name}' already exists. Either terminate '{name}' or choose a different unique name"
-                )
-            if worker_type not in self._worker_classes:
-                raise ProcessError(f"Type {worker_type} does not exist")
-            # check if somebody tries to start a restricted worker type from outside this class
-            if not self.check_restricted_access(worker_type):
-                raise ProcessError(
-                    f"Worker of type {worker_type} can only be started by server."
-                )
-
-        for process in processes:
-            worker_type = process["type"]
-            name = process["name"]
-            args = process["args"] if process["args"] else []
-            worker_instance = self.create_worker(worker_type, *args)
-            command_queue = multiprocessing.Queue()
-            response_queue = multiprocessing.Queue()
-            p = multiprocessing.Process(
-                target=worker_instance.run, args=(command_queue, response_queue)
+    def start_process(self, process: Dict[str, Any]) -> None:
+        worker_type = process["type"]
+        name = process["name"]
+        if name in self._processes:
+            raise ProcessError(
+                f"Process names must be unique. '{name}' already exists. Either terminate '{name}' or choose a different unique name"
             )
-            p.start()
-            print(f"started {name} of type {worker_type}")
-            self.add_process(name, worker_type, p, command_queue, response_queue)
+        if worker_type not in self._worker_classes:
+            raise ProcessError(f"Type {worker_type} does not exist")
+        # check if somebody tries to start a restricted worker type from outside this class
+        if not self.check_restricted_access(worker_type):
+            raise ProcessError(
+                f"Worker of type {worker_type} can only be started by server."
+            )
+
+        args = process["args"] if process["args"] else []
+        worker_instance = self.create_worker(worker_type, *args)
+        command_queue = multiprocessing.Queue()
+        response_queue = multiprocessing.Queue()
+        stream_id = worker_instance.get_stream_id()
+        p = multiprocessing.Process(
+            target=worker_instance.run, args=(command_queue, response_queue)
+        )
+        p.start()
+        print(f"started {name} of type {worker_type}")
+        self.add_process(name, worker_type, p, command_queue, response_queue, stream_id)
 
     # check if process is running otherwise throw ProcessError
     def check_for_running_process(self, name: str) -> None:
@@ -172,7 +175,7 @@ class Spawner:
                 worker_type in self._restricted_classes
                 and self.check_restricted_access(worker_type)
             ):
-                self.start_processes([self.find_process_in_config_by_name(name)])
+                self.start_process(self.find_process_in_config_by_name(name))
 
     def wait_for_manager(
         self,

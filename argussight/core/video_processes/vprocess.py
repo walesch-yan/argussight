@@ -110,6 +110,9 @@ class Vprocess:
         except Exception as e:
             response_queue.put(e)
 
+    def get_stream_id(self):
+        return ""
+
 
 class Test(Vprocess):
     def __init__(self, shared_dict: DictProxy = None, lock: Lock = None) -> None:

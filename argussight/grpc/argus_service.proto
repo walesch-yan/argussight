@@ -10,12 +10,13 @@ service SpawnerService {
 }
 
 message StartProcessesRequest {
-    repeated ProcessInfo processes = 1;
+    ProcessInfo process = 1;
 }
 
 message StartProcessesResponse {
     string status = 1;
     string error_message = 2;
+    string stream_id = 3;
 }
 
 message TerminateProcessesRequest {
