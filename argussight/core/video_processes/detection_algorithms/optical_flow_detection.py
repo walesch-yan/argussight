@@ -19,7 +19,11 @@ import json
 
 class OpticalFlowDetection(Vprocess):
     def __init__(
-        self, shared_dict: DictProxy, lock: Lock, roi: Tuple[int, int, int, int]
+        self,
+        shared_dict: DictProxy,
+        lock: Lock,
+        free_port,
+        roi: Tuple[int, int, int, int],
     ) -> None:
         super().__init__(shared_dict, lock)
         self._roi = roi
@@ -39,6 +43,9 @@ class OpticalFlowDetection(Vprocess):
         self._currently_streaming = False
         self._stream_id = str(uuid.uuid1())
         self._redis_client = redis.StrictRedis(host="localhost", port=6379)
+
+        # temp
+        self.free_port = free_port
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
@@ -179,7 +186,7 @@ class OpticalFlowDetection(Vprocess):
                             "size": self._processed_frame.shape,
                         }
                         self._redis_client.publish(
-                            "optical_flow", json.dumps(frame_dict)
+                            self._stream_id, json.dumps(frame_dict)
                         )
                         if not self._currently_streaming:
                             self._video_stream_process = subprocess.Popen(
@@ -190,7 +197,7 @@ class OpticalFlowDetection(Vprocess):
                                     "-hs",
                                     "localhost",
                                     "-p",
-                                    "9090",
+                                    "90" + str(self.free_port),  # temp
                                     "-q",
                                     "4",
                                     "-s",
@@ -202,7 +209,7 @@ class OpticalFlowDetection(Vprocess):
                                     "-id",
                                     self._stream_id,
                                     "-irc",
-                                    "optical_flow",
+                                    self._stream_id,
                                 ],
                                 close_fds=True,
                             )
