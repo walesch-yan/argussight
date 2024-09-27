@@ -37,6 +37,7 @@ class OpticalFlowDetection(Vprocess):
 
         self.load_params()
         self._currently_streaming = False
+        self._stream_id = str(uuid.uuid1())
         self._redis_client = redis.StrictRedis(host="localhost", port=6379)
 
     @classmethod
@@ -52,6 +53,9 @@ class OpticalFlowDetection(Vprocess):
             params = yaml.safe_load(file)
 
         self._flow_params = params["flow_params"]
+
+    def get_stream_id(self) -> str:
+        return self._stream_id
 
     def update_speed_value(self) -> None:
         if not self._speeds:
@@ -196,7 +200,7 @@ class OpticalFlowDetection(Vprocess):
                                     "-of",
                                     "MPEG1",
                                     "-id",
-                                    str(uuid.uuid1()),
+                                    self._stream_id,
                                     "-irc",
                                     "optical_flow",
                                 ],

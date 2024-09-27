@@ -17,16 +17,15 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
 
     def StartProcesses(self, request, context):
         try:
-            process_dicts = [
-                {
-                    "name": process.name,
-                    "type": process.type,
-                    "args": [json.loads(arg) for arg in process.args],
-                }
-                for process in request.processes
-            ]
-            self.spawner.start_processes(process_dicts)
-            return pb2.StartProcessesResponse(status="success")
+            process = request.process
+            process_dict = {
+                "name": process.name,
+                "type": process.type,
+                "args": [json.loads(arg) for arg in process.args],
+            }
+            self.spawner.start_process(process_dict)
+            stream_id = self.spawner.get_stream_id(process.name)
+            return pb2.StartProcessesResponse(status="success", stream_id=stream_id)
         except ProcessError as e:
             return pb2.StartProcessesResponse(status="failure", error_message=str(e))
         except Exception as e:
