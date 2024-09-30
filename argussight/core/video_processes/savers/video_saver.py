@@ -1,15 +1,15 @@
-from argussight.core.video_processes.vprocess import Vprocess, ProcessError
 from enum import Enum
 from PIL import Image
 from typing import Iterable, Dict, Any, Tuple
 from datetime import datetime
 import base64
-
 import numpy as np
 import cv2
 import os
 from multiprocessing import Queue
 import concurrent.futures
+
+from argussight.core.video_processes.vprocess import Vprocess, ProcessError
 
 
 class SaveFormat(Enum):
@@ -19,9 +19,8 @@ class SaveFormat(Enum):
 
 
 class VideoSaver(Vprocess):
-    def __init__(self, collector_config, main_save_folder: str) -> None:
+    def __init__(self, collector_config) -> None:
         super().__init__(collector_config)
-        self._main_save_folder = main_save_folder
         self._command_timeout = 0.04
         self._recording = (
             True  # change this value for stopping to save frames to iterable
@@ -40,7 +39,7 @@ class VideoSaver(Vprocess):
         )
 
     def is_within_main(self, target: str):
-        abs_main = os.path.abspath(self._main_save_folder)
+        abs_main = os.path.abspath(self._parameters["main_save_folder"])
         abs_target = os.path.abspath(target)
 
         common_prefix = os.path.commonpath([abs_main])
@@ -74,10 +73,12 @@ class VideoSaver(Vprocess):
         out.release()
         cv2.destroyAllWindows()
 
-    def save_iterable(
-        self, iterable: Iterable, save_format: str, personnal_folder: str
-    ) -> None:
-        save_folder = os.path.join(self._main_save_folder, personnal_folder)
+    def save_iterable(self, iterable: Iterable) -> None:
+        save_folder = os.path.join(
+            self._parameters["main_save_folder"], self._parameters["personnal_folder"]
+        )
+        save_format = self._parameters["save_format"]
+
         if not self.is_within_main(save_folder):
             raise ProcessError("Your path should not leave the main folder")
         if (

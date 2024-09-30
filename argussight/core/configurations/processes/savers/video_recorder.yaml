@@ -1,0 +1,15 @@
+---
+
+parameters:
+  main_save_folder:
+    value: "logs/recordings"
+    exposed: false
+  temp_folder:
+    value: "temp"
+    exposed: false
+  save_format:
+    value: "both"
+    exposed: true
+  personnal_folder:
+    value: "test"
+    exposed: true

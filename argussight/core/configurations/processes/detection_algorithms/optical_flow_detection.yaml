@@ -1,0 +1,16 @@
+---
+
+parameters:
+  flow_params:
+    value:
+      pyr_scale: 0.5
+      levels: 3
+      winsize: 15
+      iterations: 3
+      poly_n: 5
+      poly_sigma: 1.1
+      flags: 0
+    exposed: false
+  roi:
+    value: [550, 450, 200, 500]
+    exposed: true

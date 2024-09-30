@@ -69,12 +69,12 @@ class Spawner:
             if not worker_class["accessible"]:
                 self._restricted_classes.append(key)
 
-    def create_worker(self, worker_type: str, free_port, *args) -> Vprocess:
+    def create_worker(self, worker_type: str, free_port) -> Vprocess:
         if worker_type == "flow_detection":
             return self._worker_classes.get(worker_type)(
-                self.collector_config, free_port, *args
+                self.collector_config, free_port
             )
-        return self._worker_classes.get(worker_type)(self.collector_config, *args)
+        return self._worker_classes.get(worker_type)(self.collector_config)
 
     def add_process(
         self,
@@ -150,8 +150,7 @@ class Spawner:
                     f"Could not start '{name}', all streaming ports are taken"
                 )
 
-        args = process["args"] if process["args"] else []
-        worker_instance = self.create_worker(worker_type, free_port, *args)
+        worker_instance = self.create_worker(worker_type, free_port)
         command_queue = multiprocessing.Queue()
         response_queue = multiprocessing.Queue()
         stream_id = f"ws://localhost:90{free_port}/ws/{worker_instance.get_stream_id()}"

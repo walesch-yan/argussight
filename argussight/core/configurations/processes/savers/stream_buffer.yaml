@@ -1,0 +1,15 @@
+---
+
+parameters:
+  max_queue_len:
+    value: 200
+    exposed: false
+  main_save_folder:
+    value: "logs/"
+    exposed: false
+  save_format:
+    value: "both"
+    exposed: true
+  personnal_folder:
+    value: "test"
+    exposed: true

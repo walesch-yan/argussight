@@ -1,10 +1,5 @@
 import cv2
 import numpy as np
-
-from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
-from typing import Tuple, Dict, Any
-import yaml
-import os
 from datetime import datetime
 import subprocess
 import uuid
@@ -12,16 +7,16 @@ import redis
 import base64
 import json
 
+from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
+
 
 class OpticalFlowDetection(Vprocess):
     def __init__(
         self,
         collector_config,
         free_port,
-        roi: Tuple[int, int, int, int],
     ) -> None:
         super().__init__(collector_config)
-        self._roi = roi
         self._previous_frame = None
         self._processed_frame = None
         self._speeds = []
@@ -34,27 +29,12 @@ class OpticalFlowDetection(Vprocess):
         self._time_stamp_used = True
         self._command_timeout = 0.02
 
-        self.load_params()
         self._currently_streaming = False
         self._stream_id = str(uuid.uuid1())
         self._redis_client = redis.StrictRedis(host="localhost", port=6379)
 
         # temp
         self.free_port = free_port
-
-    @classmethod
-    def create_commands_dict(cls) -> Dict[str, Any]:
-        return {"change_roi": cls.change_roi}
-
-    def load_params(self) -> None:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        params_file = os.path.join(
-            current_dir, "../../configurations/optical_flow_detection.yaml"
-        )
-        with open(params_file, "r") as file:
-            params = yaml.safe_load(file)
-
-        self._flow_params = params["flow_params"]
 
     def get_stream_id(self) -> str:
         return self._stream_id
@@ -68,7 +48,7 @@ class OpticalFlowDetection(Vprocess):
     def get_background_percentage(self, frame):
         # Calculate the percentage of background in roi
         mask = self._back_sub.apply(frame)
-        x, y, w, h = self._roi
+        x, y, w, h = self._parameters["roi"]
         mask_roi = mask[y : y + h, x : x + w]
         non_background_pixels = np.count_nonzero(mask_roi)
         total_pixels = mask_roi.size
@@ -77,7 +57,7 @@ class OpticalFlowDetection(Vprocess):
         return background_percentage, mask_roi
 
     def calculate_flow(self, frame, time_stamp: datetime):
-        x, y, w, h = self._roi
+        x, y, w, h = self._parameters["roi"]
 
         if self._previous_frame is None:
             self._previous_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -112,7 +92,7 @@ class OpticalFlowDetection(Vprocess):
 
         # Calculate optical flow within the ROI
         flow = cv2.calcOpticalFlowFarneback(
-            prvs_frame_roi, next_frame_roi, None, **self._flow_params
+            prvs_frame_roi, next_frame_roi, None, **self._parameters["flow_params"]
         )
         # We do not want to consider the flow of the background
         binary_mask = binary_mask = (bg_mask > 0).astype(np.uint8)
@@ -197,8 +177,10 @@ class OpticalFlowDetection(Vprocess):
                 )
                 self._currently_streaming = True
 
+    """
     def change_roi(self, roi: Tuple[int, int, int, int]):
         self._previous_frame = None
         self._processed_frame = None
         self._speeds.clear()
         self._roi = roi
+    """

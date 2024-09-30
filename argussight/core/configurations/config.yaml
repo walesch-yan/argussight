@@ -19,10 +19,7 @@ worker_classes:
 processes:
   - name: "initial test"
     type: test
-    args: []
   - name: "Saver"
     type: stream_buffer
-    args: [200, logs]
   - name: "Recorder"
     type: video_recorder
-    args: [logs/recordings, temp]

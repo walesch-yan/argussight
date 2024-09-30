@@ -1,0 +1,21 @@
+---
+
+parameters:
+  feature_params:
+    value:
+      maxCorners: 5
+      qualityLevel: 0.7
+      minDistance: 50
+      blockSize: 7
+    exposed: false
+
+  lk_params:
+    value:
+      winSize: [15, 15]
+      maxLevel: 2
+      criteria: [3, 10, 0.03]
+    exposed: false
+
+  roi:
+    value: [550, 450, 200, 500]
+    exposed: true

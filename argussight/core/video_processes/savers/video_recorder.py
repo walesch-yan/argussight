@@ -1,10 +1,11 @@
 from typing import Any, Dict, Tuple
-from argussight.core.video_processes.savers.video_saver import VideoSaver
-from argussight.core.video_processes.vprocess import ProcessError
 import os
 import glob
 from PIL import Image
 import shutil
+
+from argussight.core.video_processes.savers.video_saver import VideoSaver
+from argussight.core.video_processes.vprocess import ProcessError
 
 
 def remove_start_end(main: str, start: str, end: str) -> str:
@@ -31,18 +32,16 @@ class Recorder(VideoSaver):
     def __init__(
         self,
         collector_config,
-        main_save_folder: str,
-        temp_folder: str,
     ) -> None:
-        super().__init__(collector_config, main_save_folder)
+        super().__init__(collector_config)
         self._recording = False
         self._temp_counter = 0
 
         # Make sure that there are no files in the temp folder from old recording failures
-        delete_all_files(temp_folder)
-        os.makedirs(temp_folder)
+        delete_all_files(self._parameters['temp_folder'])
+        os.makedirs(self._parameters['temp_folder'])
 
-        self._temp_folder = os.path.join(temp_folder, f"{self._temp_counter}")
+        self._parameters["temp_folder"] = os.path.join(self._parameters['temp_folder'], f"{self._temp_counter}")
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
@@ -52,9 +51,9 @@ class Recorder(VideoSaver):
         }
 
     def add_to_iterable(self, frame: Dict) -> None:
-        if not os.path.exists(self._temp_folder):
-            os.makedirs(self._temp_folder, exist_ok=True)
-        self.save_frame(frame, self._temp_folder)
+        if not os.path.exists(self._parameters["temp_folder"]):
+            os.makedirs(self._parameters["temp_folder"], exist_ok=True)
+        self.save_frame(frame, self._parameters["temp_folder"])
 
     def get_frame_from_element(
         self, element: Any
@@ -69,28 +68,28 @@ class Recorder(VideoSaver):
             raise ProcessError("Already recording")
         self._recording = True
 
-    def stop_record(self, save_format, personnal_folder) -> None:
+    def stop_record(self) -> None:
         if not self._recording:
             raise ProcessError("There is no recording to stop")
 
         image_names = [
             os.path.join(self._temp_folder, os.path.basename(image))
-            for image in glob.glob(os.path.join(self._temp_folder, "*jpg"))
+            for image in glob.glob(os.path.join(self._parameters["temp_folder"], "*jpg"))
         ]
 
         # create a process to make a video from the recorded frames
         self.executor.submit(
             self._stop_record,
             image_names,
-            save_format,
-            personnal_folder,
-            self._temp_folder,
+            self._parameters["save_format"],
+            self._parameters["personnal_folder"],
+            self._parameters["temp_folder"]
         )
 
         # go to next recording folder
-        self._temp_folder = self._temp_folder.rsplit("/")[0]
+        self._parameters["temp_folder"] = self._parameters["temp_folder"].rsplit("/")[0]
         self._temp_counter += 1
-        self._temp_folder = os.path.join(self._temp_folder, f"{self._temp_counter}")
+        self._parameters["temp_folder"] = os.path.join(self._parameters["temp_folder"], f"{self._temp_counter}")
 
         self._recording = False
 
