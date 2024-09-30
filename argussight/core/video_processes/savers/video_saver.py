@@ -1,14 +1,11 @@
 from argussight.core.video_processes.vprocess import Vprocess, ProcessError
-from multiprocessing.managers import DictProxy
-from multiprocessing.synchronize import Lock
 from enum import Enum
 from PIL import Image
 from typing import Iterable, Dict, Any, Tuple
-from multiprocessing import Queue
 from datetime import datetime
+import base64
 
 import numpy as np
-import queue
 import cv2
 import os
 
@@ -20,10 +17,8 @@ class SaveFormat(Enum):
 
 
 class VideoSaver(Vprocess):
-    def __init__(
-        self, shared_dict: DictProxy, lock: Lock, main_save_folder: str
-    ) -> None:
-        super().__init__(shared_dict, lock)
+    def __init__(self, collector_config, main_save_folder: str) -> None:
+        super().__init__(collector_config)
         self._main_save_folder = main_save_folder
         self._command_timeout = 0.04
         self._recording = (
@@ -104,21 +99,19 @@ class VideoSaver(Vprocess):
     def add_to_iterable(self, frame: Dict) -> None:
         pass
 
-    def run(self, command_queue: Queue, response_queue: Queue) -> None:
-        while True:
-            try:
-                order, args = command_queue.get(timeout=self._command_timeout)
-                self.handle_command(order, response_queue, args)
-            except queue.Empty:
-                if self._recording:
-                    change = False
-                    with self.lock:
-                        current_frame_number = self.shared_dict["frame_number"]
-                        if self._current_frame_number != current_frame_number:
-                            current_frame = dict(self.shared_dict)
-                            change = True
-                    if change:
-                        current_frame["time_stamp"] = datetime.strptime(
-                            current_frame["time_stamp"], self._date_format
-                        ).strftime(self._date_format)
-                        self.add_to_iterable(current_frame)
+    def read_frame(self, frame) -> None:
+        current_frame_number = frame["frame_number"]
+        if self._current_frame_number != -1:
+            self._missed_frames += current_frame_number - self._current_frame_number - 1
+            if current_frame_number > self._current_frame_number + 1:
+                print(f"Frames Missed in Total: {self._missed_frames}")
+        else:
+            print(f"Started reading at frame {current_frame_number}")
+        self._current_frame_number = current_frame_number
+
+        if self._recording:
+            frame["time_stamp"] = datetime.strptime(
+                frame["time"], self._date_format
+            ).strftime(self._date_format)
+            frame["data"] = base64.b64decode(frame["data"])
+            self.add_to_iterable(frame)

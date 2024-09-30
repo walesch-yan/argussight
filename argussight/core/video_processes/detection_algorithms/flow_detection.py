@@ -4,12 +4,13 @@ from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
 from typing import Tuple, Dict, Any
 import yaml
 import os
-from multiprocessing.managers import DictProxy
-from multiprocessing.synchronize import Lock
 from datetime import datetime
 from collections import deque
-from multiprocessing import Queue
-import queue
+import base64
+import redis
+import uuid
+import json
+import subprocess
 
 
 class Point:
@@ -34,10 +35,8 @@ class Point:
 
 
 class FlowDetection(Vprocess):
-    def __init__(
-        self, shared_dict: DictProxy, lock: Lock, roi: Tuple[int, int, int, int]
-    ) -> None:
-        super().__init__(shared_dict, lock)
+    def __init__(self, collector_config, roi: Tuple[int, int, int, int]) -> None:
+        super().__init__(collector_config)
         self._roi = roi
         self._previous_frame = None
         self._min_distance = 50
@@ -52,6 +51,9 @@ class FlowDetection(Vprocess):
         self._command_timeout = 0.04  # this process needs to handle incoming frames consecutavely hence low waiting time
 
         self.load_params()
+
+        self._stream_id = str(uuid.uuid1())
+        self._redis_client = redis.StrictRedis(host="localhost", port=6379)
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
@@ -195,28 +197,44 @@ class FlowDetection(Vprocess):
 
         return frame
 
-    def run(self, command_queue: Queue, response_queue: Queue) -> None:
-        while True:
-            try:
-                order, args = command_queue.get(timeout=self._command_timeout)
-                self.handle_command(order, response_queue, args)
-            except queue.Empty:
-                change = self.read_frame()
-                if self._current_frame_number != 0:
-                    self._processed_frame = (
-                        self.detect_and_track_features(
-                            self._current_frame, self._current_frame_time
-                        )
-                        if change
-                        else self._processed_frame
-                    )
-                    if self._processed_frame is not None:
-                        cv2.imshow("Live Stream", self._processed_frame)
-
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
-                        break
-
-        cv2.destroyAllWindows()
+    def process_frame(self) -> None:
+        self._processed_frame = self.detect_and_track_features(
+            self._current_frame, self._current_frame_time
+        )
+        if self._processed_frame is not None:
+            _, buffer = cv2.imencode(".jpg", self._processed_frame)
+            raw_image_data = buffer.tobytes()
+            frame_dict = {
+                "data": base64.b64encode(raw_image_data).decode("utf-8"),
+                "size": self._processed_frame.shape,
+            }
+            self._redis_client.publish(self._stream_id, json.dumps(frame_dict))
+            if not self._currently_streaming:
+                self._video_stream_process = subprocess.Popen(
+                    [
+                        "video-streamer",
+                        "-uri",
+                        "redis://localhost:6379",
+                        "-hs",
+                        "localhost",
+                        "-p",
+                        "90" + str(self.free_port),  # temp
+                        "-q",
+                        "4",
+                        "-s",
+                        str(self._processed_frame.shape)
+                        .replace("(", "")
+                        .replace(")", ""),
+                        "-of",
+                        "MPEG1",
+                        "-id",
+                        self._stream_id,
+                        "-irc",
+                        self._stream_id,
+                    ],
+                    close_fds=True,
+                )
+                self._currently_streaming = True
 
     def change_roi(self, roi: Tuple[int, int, int, int]):
         self._previous_frame = None

@@ -1,8 +1,6 @@
 import argparse
-import multiprocessing
 
 from argussight.core.config import get_config_from_dict
-from argussight.core.collector import Collector
 from argussight.grpc.server import serve
 
 
@@ -57,34 +55,7 @@ def run() -> None:
         }
     )
 
-    manager = multiprocessing.Manager()
-    lock = multiprocessing.Lock()
-
-    shared_dict = manager.dict()
-
-    with lock:
-        shared_dict["frame_number"] = -1
-
-    collector = Collector(config, shared_dict, lock)
-
-    collection_process = multiprocessing.Process(target=collector.start)
-    server = multiprocessing.Process(target=serve, args=(shared_dict, lock))
-
-    try:
-        collection_process.start()
-        server.start()
-
-        collection_process.join()
-        server.join()
-
-    except KeyboardInterrupt:
-        print("Terminating processes...")
-        collection_process.terminate()
-        server.terminate()
-
-        collection_process.join()
-        server.join()
-        print("Termination completed")
+    serve(config)
 
 
 if __name__ == "__main__":

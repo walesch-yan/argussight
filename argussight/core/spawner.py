@@ -1,7 +1,5 @@
 import yaml
 import multiprocessing
-from multiprocessing.managers import DictProxy
-from multiprocessing.synchronize import Lock
 from typing import List, Dict, Any, Union, Tuple
 import importlib
 import os
@@ -32,15 +30,14 @@ def find_close_key(d: dict, key: str, max_distance: int = 3) -> Union[str, None]
 
 
 class Spawner:
-    def __init__(self, shared_dict: DictProxy, lock: Lock) -> None:
+    def __init__(self, collector_config) -> None:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self._config_file = os.path.join(current_dir, "configurations/config.yaml")
         self._processes = {}
         self._worker_classes = {}
-        self.shared_dict = shared_dict
-        self.lock = lock
         self._managers_dict = {}
         self._restricted_classes = []
+        self.collector_config = collector_config
 
         # temporarily
         self.stream_ports = {
@@ -75,9 +72,9 @@ class Spawner:
     def create_worker(self, worker_type: str, free_port, *args) -> Vprocess:
         if worker_type == "flow_detection":
             return self._worker_classes.get(worker_type)(
-                self.shared_dict, self.lock, free_port, *args
+                self.collector_config, free_port, *args
             )
-        return self._worker_classes.get(worker_type)(self.shared_dict, self.lock, *args)
+        return self._worker_classes.get(worker_type)(self.collector_config, *args)
 
     def add_process(
         self,
@@ -332,9 +329,8 @@ class Spawner:
                 if name not in [
                     "self",
                     "cls",
-                    "shared_dict",
-                    "lock",
                     "free_port",
+                    "collector_config",
                 ]:  # temp free_port
                     InitArgs.append(name)
             available_process_types[type] = InitArgs

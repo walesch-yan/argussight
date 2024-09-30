@@ -1,5 +1,3 @@
-from multiprocessing.managers import DictProxy
-from multiprocessing.synchronize import Lock
 from argussight.core.video_processes.savers.video_saver import VideoSaver
 from collections import deque
 from typing import Dict, Any
@@ -8,12 +6,11 @@ from typing import Dict, Any
 class StreamBuffer(VideoSaver):
     def __init__(
         self,
-        shared_dict: DictProxy,
-        lock: Lock,
+        collector_config,
         max_queue_len: int,
         main_save_folder: str,
     ) -> None:
-        super().__init__(shared_dict, lock, main_save_folder)
+        super().__init__(collector_config, main_save_folder)
         self._queue = deque(maxlen=max_queue_len)
 
     @classmethod
