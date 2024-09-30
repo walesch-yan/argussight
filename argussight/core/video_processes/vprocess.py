@@ -10,6 +10,16 @@ import time
 import redis
 import json
 import base64
+import yaml
+import os
+import warnings
+import inspect
+
+
+CONFIG_BASE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "../configurations/processes"
+)
+CONFIGS_EXTENSION = ".yaml"
 
 
 class ProcessError(Exception):
@@ -49,10 +59,69 @@ class Vprocess:
             host=collector_config.redis.host, port=collector_config.redis.port
         )
         self._channel = collector_config.redis.channel
+        self._config = self.load_config_from_file()
+        self._parameters, self._exposed_parameters = self._get_all_parameters()
+        print(self._parameters, self._exposed_parameters)
+
+    def merge_dicts(self, base_dict, new_dict):
+        merged = base_dict.copy()
+        merged["parameters"].update(new_dict["parameters"])
+        return merged
+
+    def load_config_from_file(self) -> Dict:
+        class_hierarchy = self.__class__.mro()[:-1]
+        final_config = {"parameters": {}}
+        for klass in reversed(class_hierarchy):
+            file_name = os.path.splitext(self.get_class_file(klass))[0]
+            config_path = self.__class__.find_config_file(
+                CONFIG_BASE_PATH, file_name + CONFIGS_EXTENSION
+            )
+
+            if not config_path:
+                raise FileNotFoundError(f"Config file not found for {file_name}")
+
+            with open(config_path, "r") as config_file:
+                config_data = yaml.safe_load(config_file) or {}
+                final_config = self.merge_dicts(final_config, config_data)
+        return final_config
+
+    @staticmethod
+    def find_config_file(base_path, file_name):
+        # check if file is directly in base_path
+        direct_path = os.path.join(base_path, file_name)
+        if os.path.isfile(direct_path):
+            return direct_path
+
+        # check if file is inside a folder of base_path
+        for root, dirs, files in os.walk(base_path):
+            if file_name in files:
+                return os.path.join(root, file_name)
+        return None
+
+    def get_class_file(self, cls):
+        module = inspect.getmodule(cls)
+        if module:
+            return os.path.basename(module.__file__).replace(".py", ".yaml")
+        return None
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
         return {}
+
+    def _get_all_parameters(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        all_params = {
+            param: data["value"]
+            for param, data in self._config.get("parameters", {}).items()
+        }
+        exposed_params = {}
+        for param, data in self._config.get("parameters", {}).items():
+            if "exposed" not in data:
+                warnings.warn(
+                    f"Parameter '{param}' is missing the 'exposed' flag. Defaulting to False."
+                )
+            elif data["exposed"]:
+                exposed_params[param] = data["value"]
+        return all_params, exposed_params
 
     def read_frame(self, frame) -> bool:
         current_frame_number = frame["frame_number"]

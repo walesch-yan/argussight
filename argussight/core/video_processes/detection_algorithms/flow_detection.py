@@ -1,9 +1,8 @@
 import cv2
 import numpy as np
 from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
-from typing import Tuple, Dict, Any
+from typing import Tuple
 import yaml
-import os
 from datetime import datetime
 from collections import deque
 import base64
@@ -35,9 +34,8 @@ class Point:
 
 
 class FlowDetection(Vprocess):
-    def __init__(self, collector_config, roi: Tuple[int, int, int, int]) -> None:
+    def __init__(self, collector_config) -> None:
         super().__init__(collector_config)
-        self._roi = roi
         self._previous_frame = None
         self._min_distance = 50
         self._p0 = []
@@ -55,25 +53,8 @@ class FlowDetection(Vprocess):
         self._stream_id = str(uuid.uuid1())
         self._redis_client = redis.StrictRedis(host="localhost", port=6379)
 
-    @classmethod
-    def create_commands_dict(cls) -> Dict[str, Any]:
-        return {"change_roi": cls.change_roi}
-
-    def load_params(self) -> None:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        params_file = os.path.join(
-            current_dir, "../../configurations/flow_detection.yaml"
-        )
-        with open(params_file, "r") as file:
-            params = yaml.safe_load(file)
-
-        self._feature_params = params["feature_params"]
-        self._lk_params = params["lk_params"]
-
-        self._lk_params["criteria"] = tuple(self._lk_params["criteria"])
-
     def is_point_in_roi(self, x: int, y: int) -> bool:
-        rx, ry, rw, rh = self._roi
+        rx, ry, rw, rh = self._parameters["roi"]
         return rx <= x <= rx + rw and ry <= y <= ry + rh
 
     def remove_outliers(self) -> None:
@@ -86,7 +67,7 @@ class FlowDetection(Vprocess):
             self._p0 = result if len(result) > 0 else []
 
     def detect_new_features(self, gray_frame, time_stamp: datetime) -> None:
-        x, y, w, h = self._roi
+        x, y, w, h = self._parameters["roi"]
         roi_gray = gray_frame[y : y + h, x : x + w]
 
         if len(self._p0) > 0:
@@ -130,7 +111,7 @@ class FlowDetection(Vprocess):
         return int(sum(self._speeds) / len(self._speeds))
 
     def detect_and_track_features(self, frame, time_stamp: datetime) -> None:
-        x, y, w, h = self._roi
+        x, y, w, h = self._parameters["roi"]
 
         if self._previous_frame is None:
             self._previous_frame = frame.copy()
@@ -147,6 +128,8 @@ class FlowDetection(Vprocess):
             prev_points = np.array(
                 [pt._current_position for pt in self._p0], dtype=np.float32
             ).reshape(-1, 1, 2)
+            lk_params = self._parameters["lk_params"]
+            lk_params["criteria"] = tuple(lk_params["criteria"])
             p1, st, err = cv2.calcOpticalFlowPyrLK(
                 gray_previous_frame, gray_frame, prev_points, None, **self._lk_params
             )
@@ -236,9 +219,11 @@ class FlowDetection(Vprocess):
                 )
                 self._currently_streaming = True
 
+    """
     def change_roi(self, roi: Tuple[int, int, int, int]):
         self._previous_frame = None
         self._processed_frame = None
         self._speeds = deque(maxlen=20)
         self._p0 = []
         self._roi = roi
+    """
