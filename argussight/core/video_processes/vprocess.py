@@ -1,5 +1,3 @@
-from multiprocessing.managers import DictProxy
-from multiprocessing.synchronize import Lock
 from enum import Enum
 from PIL import Image
 from typing import Tuple, Dict, Any
@@ -9,6 +7,9 @@ from datetime import datetime
 from multiprocessing import Queue
 import queue
 import time
+import redis
+import json
+import base64
 
 
 class ProcessError(Exception):
@@ -24,9 +25,7 @@ class FrameFormat(Enum):
 
 
 class Vprocess:
-    def __init__(self, shared_dict: DictProxy = None, lock: Lock = None) -> None:
-        self.shared_dict = shared_dict
-        self.lock = lock
+    def __init__(self, collector_config) -> None:
         self._current_frame_number = -1
         self._current_frame = None
         self._missed_frames = 0
@@ -38,40 +37,38 @@ class Vprocess:
         self._time_stamp_used = (
             False  # If you need self._current_frame_time, set this to true
         )
-        self._commands = (
-            self.create_commands_dict()
-        )  # Dictionary of all commands that can be executed via command_queue
         self._command_timeout = (
             1  # Time the process waits for new commands to arrive in seconds
         )
+
+        # Dictionary of all commands that can be executed via command_queue
+        self._commands = self.create_commands_dict()
         self._date_format = "%H:%M:%S.%f"
+
+        self._client = redis.StrictRedis(
+            host=collector_config.redis.host, port=collector_config.redis.port
+        )
+        self._channel = collector_config.redis.channel
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
         return {}
 
-    def read_frame(self) -> bool:
-        with self.lock:
-            current_frame_number = self.shared_dict["frame_number"]
-            if self._current_frame_number != current_frame_number:
-                if self._time_stamp_used:
-                    self._current_frame_time = datetime.strptime(
-                        self.shared_dict["time_stamp"], self._date_format
-                    )
+    def read_frame(self, frame) -> bool:
+        current_frame_number = frame["frame_number"]
+        if self._time_stamp_used:
+            self._current_frame_time = datetime.strptime(
+                frame["time"], self._date_format
+            )
 
-                self.copy_frame(self.shared_dict["frame"], self.shared_dict["size"])
-                if self._current_frame_number != -1:
-                    self._missed_frames += (
-                        current_frame_number - self._current_frame_number - 1
-                    )
-                    if current_frame_number > self._current_frame_number + 1:
-                        print(f"Frames Missed in Total: {self._missed_frames}")
-                else:
-                    print(f"Started reading at frame {current_frame_number}")
-                self._current_frame_number = current_frame_number
-                return True
-
-        return False
+        self.copy_frame(base64.b64decode(frame["data"]), frame["size"])
+        if self._current_frame_number != -1:
+            self._missed_frames += current_frame_number - self._current_frame_number - 1
+            if current_frame_number > self._current_frame_number + 1:
+                print(f"Frames Missed in Total: {self._missed_frames}")
+        else:
+            print(f"Started reading at frame {current_frame_number}")
+        self._current_frame_number = current_frame_number
 
     def copy_frame(self, frame_data: bytes, frame_size: Tuple[int, int, int]) -> None:
         match self._frame_format:
@@ -88,12 +85,25 @@ class Vprocess:
                 raise TypeError(f"FrameFormat has no type: {self._frame_format}")
 
     def run(self, command_queue: Queue, response_queue: Queue) -> None:
-        while True:
-            try:
-                order, args = command_queue.get(timeout=self._command_timeout)
-                self.handle_command(order, response_queue, args)
-            except queue.Empty:
-                continue
+        pubsub = self._client.pubsub()
+        pubsub.subscribe(self._channel)
+
+        try:
+            for message in pubsub.listen():
+                try:
+                    order, args = command_queue.get(timeout=self._command_timeout)
+                    self.handle_command(order, response_queue, args)
+                except queue.Empty:
+                    pass
+
+                if message and message["type"] == "message":
+                    self.read_frame(json.loads(message["data"]))
+                    self.process_frame()
+        except redis.exceptions.ConnectionError as e:
+            print(f"Connection error {e} by {type(self)}")
+
+    def process_frame(self) -> None:
+        pass
 
     def handle_command(self, order: str, response_queue: Queue, args) -> None:
         if order not in self._commands:
@@ -115,14 +125,21 @@ class Vprocess:
 
 
 class Test(Vprocess):
-    def __init__(self, shared_dict: DictProxy = None, lock: Lock = None) -> None:
-        super().__init__(shared_dict, lock)
+    def __init__(self, collector_config) -> None:
+        super().__init__(collector_config)
         self._commands["print"] = self.print
 
     def run(self, command_queue: Queue, response_queue: Queue) -> None:
         print("Running test process")
-        super().run(command_queue, response_queue)
+        try:
+            order, args = command_queue.get(timeout=self._command_timeout)
+            self.handle_command(order, response_queue, args)
+        except queue.Empty:
+            pass
 
     def print(self, text: str):
         print(text)
         time.sleep(2)
+
+    def process_frame(self) -> None:
+        time.sleep(3)

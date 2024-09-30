@@ -3,16 +3,14 @@ from concurrent import futures
 import time
 import argussight.grpc.argus_service_pb2 as pb2
 import argussight.grpc.argus_service_pb2_grpc as pb2_grpc
-from multiprocessing.managers import DictProxy
-from multiprocessing.synchronize import Lock
 import json
 
 from argussight.core.spawner import Spawner, ProcessError
 
 
 class SpawnerService(pb2_grpc.SpawnerServiceServicer):
-    def __init__(self, shared_dict: DictProxy, lock: Lock):
-        self.spawner = Spawner(shared_dict, lock)
+    def __init__(self, collector_config):
+        self.spawner = Spawner(collector_config)
         self._min_waiting_time = 1
 
     def StartProcesses(self, request, context):
@@ -93,10 +91,10 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
             )
 
 
-def serve(shared_dict: DictProxy, lock: Lock):
+def serve(collector_config):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     pb2_grpc.add_SpawnerServiceServicer_to_server(
-        SpawnerService(shared_dict, lock), server
+        SpawnerService(collector_config), server
     )
     server.add_insecure_port("[::]:50051")
     server.start()

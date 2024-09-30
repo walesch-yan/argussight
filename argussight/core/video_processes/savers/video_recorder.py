@@ -1,5 +1,3 @@
-from multiprocessing.managers import DictProxy
-from multiprocessing.synchronize import Lock
 from typing import Any, Dict, Tuple
 from argussight.core.video_processes.savers.video_saver import VideoSaver
 from argussight.core.video_processes.vprocess import ProcessError
@@ -29,12 +27,11 @@ def delete_all_files(folder_path: str) -> None:
 class Recorder(VideoSaver):
     def __init__(
         self,
-        shared_dict: DictProxy,
-        lock: Lock,
+        collector_config,
         main_save_folder: str,
         temp_folder: str,
     ) -> None:
-        super().__init__(shared_dict, lock, main_save_folder)
+        super().__init__(collector_config, main_save_folder)
         self._recording = False
         self._temp_folder = temp_folder
 
