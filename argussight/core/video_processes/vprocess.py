@@ -61,7 +61,6 @@ class Vprocess:
         self._channel = collector_config.redis.channel
         self._config = self.load_config_from_file()
         self._parameters, self._exposed_parameters = self._get_all_parameters()
-        print(self._parameters, self._exposed_parameters)
 
     def merge_dicts(self, base_dict, new_dict):
         merged = base_dict.copy()
@@ -106,7 +105,32 @@ class Vprocess:
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
-        return {}
+        return {"settings": cls.change_settings}
+
+    def change_settings(self, dict: Dict) -> None:
+        if not set(dict.keys()).issubset(self._exposed_parameters.keys()):
+            raise ProcessError(
+                f"The given settings {dict.keys()} do not exist. Allowed settings are {self._exposed_parameters.keys()}"
+            )
+
+        params_copy = self._parameters.copy()
+        params_copy.update(dict)
+        self.check_conflict(params_copy)
+
+        self._prepare_settings_change(dict)
+        self._exposed_parameters.update(dict)
+        self._parameters.update(dict)
+
+    def _prepare_settings_change(self, dict: Dict) -> None:
+        for key, value in dict.items():
+            if value != self._parameters[key]:
+                self.prepare_setting_change(key)
+
+    def check_conflict(self, dict: Dict) -> None:
+        pass
+
+    def prepare_setting_change(self, key: str) -> None:
+        pass
 
     def _get_all_parameters(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         all_params = {

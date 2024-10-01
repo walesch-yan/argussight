@@ -4,6 +4,9 @@ parameters:
   main_save_folder:
     value: "logs/recordings"
     exposed: false
+  # pay attention to the setting of the temp folder, as the folder will
+  # be cleared when the recorder is initialised,
+  # IMPORTANT: do NOT use an existing folder!!!
   temp_folder:
     value: "temp"
     exposed: false

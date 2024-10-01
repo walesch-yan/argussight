@@ -219,11 +219,12 @@ class FlowDetection(Vprocess):
                 )
                 self._currently_streaming = True
 
-    """
-    def change_roi(self, roi: Tuple[int, int, int, int]):
-        self._previous_frame = None
-        self._processed_frame = None
-        self._speeds = deque(maxlen=20)
-        self._p0 = []
-        self._roi = roi
-    """
+    def prepare_setting_change(self, key: str) -> None:
+        match key:
+            case "roi":
+                self._previous_frame = None
+                self._processed_frame = None
+                self._speeds = deque(maxlen=20)
+                self._p0 = []
+            case _:
+                pass

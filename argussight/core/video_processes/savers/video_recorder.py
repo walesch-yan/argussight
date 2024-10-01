@@ -38,17 +38,23 @@ class Recorder(VideoSaver):
         self._temp_counter = 0
 
         # Make sure that there are no files in the temp folder from old recording failures
-        delete_all_files(self._parameters['temp_folder'])
-        os.makedirs(self._parameters['temp_folder'])
+        delete_all_files(self._parameters["temp_folder"])
+        os.makedirs(self._parameters["temp_folder"])
 
-        self._parameters["temp_folder"] = os.path.join(self._parameters['temp_folder'], f"{self._temp_counter}")
+        self._parameters["temp_folder"] = os.path.join(
+            self._parameters["temp_folder"], f"{self._temp_counter}"
+        )
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
-        return {
-            "start": cls.start_record,
-            "stop": cls.stop_record,
-        }
+        result = super().create_commands_dict()
+        result.update(
+            {
+                "start": cls.start_record,
+                "stop": cls.stop_record,
+            }
+        )
+        return result
 
     def add_to_iterable(self, frame: Dict) -> None:
         if not os.path.exists(self._parameters["temp_folder"]):
@@ -73,26 +79,28 @@ class Recorder(VideoSaver):
             raise ProcessError("There is no recording to stop")
 
         image_names = [
-            os.path.join(self._temp_folder, os.path.basename(image))
-            for image in glob.glob(os.path.join(self._parameters["temp_folder"], "*jpg"))
+            os.path.join(self._parameters["temp_folder"], os.path.basename(image))
+            for image in glob.glob(
+                os.path.join(self._parameters["temp_folder"], "*jpg")
+            )
         ]
 
         # create a process to make a video from the recorded frames
         self.executor.submit(
             self._stop_record,
             image_names,
-            self._parameters["save_format"],
-            self._parameters["personnal_folder"],
-            self._parameters["temp_folder"]
+            self._parameters["temp_folder"],
         )
 
         # go to next recording folder
         self._parameters["temp_folder"] = self._parameters["temp_folder"].rsplit("/")[0]
         self._temp_counter += 1
-        self._parameters["temp_folder"] = os.path.join(self._parameters["temp_folder"], f"{self._temp_counter}")
+        self._parameters["temp_folder"] = os.path.join(
+            self._parameters["temp_folder"], f"{self._temp_counter}"
+        )
 
         self._recording = False
 
-    def _stop_record(self, images_names, save_format, personnal_folder, temp_folder):
-        self.save_iterable(images_names, save_format, personnal_folder)
+    def _stop_record(self, images_names, temp_folder):
+        self.save_iterable(images_names)
         delete_all_files(temp_folder)
