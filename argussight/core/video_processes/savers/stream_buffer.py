@@ -18,7 +18,8 @@ class StreamBuffer(VideoSaver):
         return {"save": cls.save_queue}
 
     def save_queue(self, save_format: str, personnal_folder: str) -> None:
-        self.save_iterable(self._queue, save_format, personnal_folder)
+        queue = self._queue.copy()
+        self.executor.submit(self.save_iterable, queue, save_format, personnal_folder)
 
     def add_to_iterable(self, frame: Dict) -> None:
         self._queue.append(frame)
