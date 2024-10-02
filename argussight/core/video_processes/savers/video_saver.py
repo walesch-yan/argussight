@@ -8,6 +8,8 @@ import base64
 import numpy as np
 import cv2
 import os
+from multiprocessing import Queue
+import concurrent.futures
 
 
 class SaveFormat(Enum):
@@ -24,6 +26,11 @@ class VideoSaver(Vprocess):
         self._recording = (
             True  # change this value for stopping to save frames to iterable
         )
+
+        # saving videos and frames might take some time, the ThreadPool can be used
+        # to excute these processes in a seperate thread
+        # Normal threading doesn't work due to redis pubsub listener blocking
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
 
     def save_frame(self, frame: dict, folder_path: str):
         img = Image.frombytes("RGB", frame["size"], frame["frame"], "raw")
@@ -113,5 +120,12 @@ class VideoSaver(Vprocess):
             frame["time_stamp"] = datetime.strptime(
                 frame["time"], self._date_format
             ).strftime(self._date_format)
-            frame["data"] = base64.b64decode(frame["data"])
+            frame["frame"] = base64.b64decode(frame["data"])
             self.add_to_iterable(frame)
+
+    # override run to correctly shutdown executor
+    def run(self, command_queue: Queue, response_queue: Queue) -> None:
+        try:
+            super().run(command_queue, response_queue)
+        finally:
+            self.executor.shutdown(wait=True)
