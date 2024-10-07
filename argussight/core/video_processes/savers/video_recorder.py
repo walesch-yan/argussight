@@ -29,11 +29,8 @@ def delete_all_files(folder_path: str) -> None:
 
 
 class Recorder(VideoSaver):
-    def __init__(
-        self,
-        collector_config,
-    ) -> None:
-        super().__init__(collector_config)
+    def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
+        super().__init__(collector_config, exposed_parameters)
         self._recording = False
         self._temp_counter = 0
 

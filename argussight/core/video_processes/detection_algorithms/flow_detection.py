@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
 from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
-from typing import Tuple
-import yaml
+from typing import Tuple, Dict, Any
 from datetime import datetime
 from collections import deque
 import base64
@@ -34,8 +33,8 @@ class Point:
 
 
 class FlowDetection(Vprocess):
-    def __init__(self, collector_config) -> None:
-        super().__init__(collector_config)
+    def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
+        super().__init__(collector_config, exposed_parameters)
         self._previous_frame = None
         self._min_distance = 50
         self._p0 = []

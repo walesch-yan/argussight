@@ -5,11 +5,8 @@ from argussight.core.video_processes.savers.video_saver import VideoSaver
 
 
 class StreamBuffer(VideoSaver):
-    def __init__(
-        self,
-        collector_config,
-    ) -> None:
-        super().__init__(collector_config)
+    def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
+        super().__init__(collector_config, exposed_parameters)
         self._queue = deque(maxlen=self._parameters["max_queue_len"])
 
     @classmethod
