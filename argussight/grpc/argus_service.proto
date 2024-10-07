@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/any.proto";
+
 package argussight;
 
 service SpawnerService {
@@ -7,6 +9,7 @@ service SpawnerService {
     rpc TerminateProcesses (TerminateProcessesRequest) returns (TerminateProcessesResponse);
     rpc ManageProcesses (ManageProcessesRequest) returns (ManageProcessesResponse);
     rpc GetProcesses (GetProcessesRequest) returns (GetProcessesResponse);
+    rpc ChangeSettings (ChangeSettingsRequest) returns (ChangeSettingsResponse);
 }
 
 message StartProcessesRequest {
@@ -30,11 +33,19 @@ message TerminateProcessesResponse {
 
 message ManageProcessesRequest {
     string name = 1;
-    string order = 2;
-    int32 wait_time = 3;
-    repeated string args = 4; // JSON-encoded strings
+    string command = 2;
 }
 message ManageProcessesResponse {
+    string status = 1;
+    string error_message = 2;
+}
+
+message ChangeSettingsRequest {
+    string name = 1;
+    map<string, google.protobuf.Any> settings = 2;
+}
+
+message ChangeSettingsResponse {
     string status = 1;
     string error_message = 2;
 }
@@ -50,10 +61,6 @@ message GetProcessesResponse {
 
 message RunningProcessDictionary {
     string type = 1;
-    repeated Command commands = 2;
-}
-
-message Command {
-    string command = 1;
-    repeated string args = 2;
+    repeated string commands = 2;
+    map<string, google.protobuf.Any> settings = 3;
 }

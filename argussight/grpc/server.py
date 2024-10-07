@@ -3,7 +3,7 @@ from concurrent import futures
 import time
 import argussight.grpc.argus_service_pb2 as pb2
 import argussight.grpc.argus_service_pb2_grpc as pb2_grpc
-import json
+from argussight.grpc.helper_functions import pack_to_any, unpack_from_any
 
 from argussight.core.spawner import Spawner, ProcessError
 
@@ -40,16 +40,10 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
 
     def ManageProcesses(self, request, context):
         try:
-            if request.wait_time < self._min_waiting_time:
-                return pb2.ManageProcessesResponse(
-                    status="failure",
-                    error_message=f"Please choose wait_time to be larger than {self._min_waiting_time}",
-                )
             self.spawner.manage_process(
                 request.name,
-                request.order,
-                request.wait_time,
-                [json.loads(arg) for arg in request.args],
+                request.command,
+                {},
             )
             return pb2.ManageProcessesResponse(status="success")
         except ProcessError as e:
@@ -64,12 +58,13 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
             running_processes, available_types = self.spawner.get_processes()
             running_dict = {}
             for name, process in running_processes.items():
-                current_commands = []
-                for key, args in process["commands"].items():
-                    current_commands.append(pb2.Command(command=key, args=args))
+                settings = {}
+                for key, setting in process["settings"].items():
+                    settings[key] = pack_to_any(setting)
                 running_dict[name] = pb2.RunningProcessDictionary(
                     type=process["type"],
-                    commands=current_commands,
+                    commands=process["commands"],
+                    settings=settings,
                 )
             return pb2.GetProcessesResponse(
                 status="success",
@@ -80,6 +75,18 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
             return pb2.GetProcessesResponse(
                 status="failure", error_message=f"Unexpected error: {str(e)}"
             )
+
+    def ChangeSettings(self, request, context):
+        try:
+            settings = {}
+            for key, any_object in request.settings.items():
+                settings[key] = unpack_from_any(any_object)
+            self.spawner.manage_process(request.name, "settings", [settings])
+            return pb2.ChangeSettingsResponse(status="success")
+        except ProcessError as e:
+            return pb2.ChangeSettingsResponse(status="failure", error_message=str(e))
+        except Exception as e:
+            return pb2.ChangeSettingsResponse(status="failure", error_message=str(e))
 
 
 def serve(collector_config):
