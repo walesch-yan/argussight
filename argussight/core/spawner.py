@@ -231,19 +231,19 @@ class Spawner:
             print("manager is not alive anymore but hasn't finished")
 
     def send_command_to_manager(
-        self, name: str, command: str, max_wait_time: int, args
+        self, name: str, command: str, args
     ) -> Tuple[threading.Event, queue.Queue]:
         processed_event = threading.Event()
         response_queue = queue.Queue()
 
         self._managers_dict[name]["manager"].receive_command(
-            command, max_wait_time, processed_event, response_queue, args
+            command, self.config["wait_time"], processed_event, response_queue, args
         )
 
         return processed_event, response_queue
 
     # this function should only be called by the spawner service and used as Thread
-    def manage_process(self, name: str, command: str, max_wait_time: int, args) -> None:
+    def manage_process(self, name: str, command: str, args) -> None:
         self.check_for_running_process(name)
 
         # Check if manager already exists
@@ -260,7 +260,7 @@ class Spawner:
                 "failed_event": failed_event,
             }
             processed_event, result_queue = self.send_command_to_manager(
-                name, command, max_wait_time, args
+                name, command, args
             )
 
             manager_thread = threading.Thread(
@@ -275,23 +275,24 @@ class Spawner:
         else:
             try:
                 processed_event, result_queue = self.send_command_to_manager(
-                    name, command, max_wait_time, args
+                    name, command, args
                 )
                 failed_event = self._managers_dict[name]["failed_event"]
             except ProcessError as e:
                 e.message += f" for {name}. Try again later"
 
-        is_processing = processed_event.wait(timeout=max_wait_time)
+        is_processing = processed_event.wait(timeout=self.config["wait_time"])
         if is_processing:
             try:
-                result = result_queue.get(timeout=max_wait_time)
+                result = result_queue.get(timeout=self.config["wait_time"])
                 if isinstance(result, Exception):
                     raise result
 
                 return
             except queue.Empty:
+                wait_time = self.config["wait_time"]
                 raise ProcessError(
-                    f"Command {command} could not be executed in time {max_wait_time}. Hence process {name} is getting terminated"
+                    f"Command {command} could not be executed in time {wait_time}. Hence process {name} is getting terminated"
                 )
 
         elif failed_event.is_set():
@@ -308,16 +309,16 @@ class Spawner:
         for uname, process in self._processes.items():
             type = process["type"]
             current_class = self._worker_classes[type]
-            commands = {}
-            for key, command in current_class.create_commands_dict().items():
-                signature = inspect.signature(command)
-                commands[key] = []
-                for name, _ in signature.parameters.items():
-                    if name not in ["self", "cls"]:
-                        commands[key].append(name)
+            commands = [
+                command
+                for command in current_class.create_commands_dict().keys()
+                if command != "settings"
+            ]
+            settings = dict(process["settings"])
             running_processes[uname] = {
                 "type": type,
                 "commands": commands,
+                "settings": settings,
             }
 
         available_types = [

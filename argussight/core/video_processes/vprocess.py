@@ -208,7 +208,6 @@ class Vprocess:
                 )
             )
             return
-
         try:
             self._commands[order](self, *args)
             response_queue.put("Order {order} succeeded")

@@ -23,3 +23,5 @@ processes:
     type: stream_buffer
   - name: "Recorder"
     type: video_recorder
+
+wait_time: 5
