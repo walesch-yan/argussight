@@ -15,14 +15,8 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
 
     def StartProcesses(self, request, context):
         try:
-            process = request.process
-            process_dict = {
-                "name": process.name,
-                "type": process.type,
-                "args": [json.loads(arg) for arg in process.args],
-            }
-            self.spawner.start_process(process_dict)
-            stream_id = self.spawner.get_stream_id(process.name)
+            self.spawner.start_process(request.name, request.type)
+            stream_id = self.spawner.get_stream_id(request.name)
             return pb2.StartProcessesResponse(status="success", stream_id=stream_id)
         except ProcessError as e:
             return pb2.StartProcessesResponse(status="failure", error_message=str(e))
@@ -67,7 +61,7 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
 
     def GetProcesses(self, request, context):
         try:
-            running_processes, available_process_types = self.spawner.get_processes()
+            running_processes, available_types = self.spawner.get_processes()
             running_dict = {}
             for name, process in running_processes.items():
                 current_commands = []
@@ -77,13 +71,10 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
                     type=process["type"],
                     commands=current_commands,
                 )
-            available_dict = {}
-            for type, args in available_process_types.items():
-                available_dict[type] = pb2.InitArgs(args=args)
             return pb2.GetProcessesResponse(
                 status="success",
                 running_processes=running_dict,
-                available_process_types=available_dict,
+                available_process_types=available_types,
             )
         except Exception as e:
             return pb2.GetProcessesResponse(

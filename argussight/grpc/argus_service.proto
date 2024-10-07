@@ -10,7 +10,8 @@ service SpawnerService {
 }
 
 message StartProcessesRequest {
-    ProcessInfo process = 1;
+    string name = 1;
+    string type = 2;
 }
 
 message StartProcessesResponse {
@@ -43,14 +44,8 @@ message GetProcessesRequest {}
 message GetProcessesResponse {
     string status = 1;
     map<string, RunningProcessDictionary> running_processes = 2;
-    map<string, InitArgs> available_process_types = 3;
+    repeated string available_process_types = 3;
     string error_message = 4;
-}
-
-message ProcessInfo{
-    string name = 1;
-    string type = 2;
-    repeated string args = 3; // JSON-encoded strings
 }
 
 message RunningProcessDictionary {
@@ -61,8 +56,4 @@ message RunningProcessDictionary {
 message Command {
     string command = 1;
     repeated string args = 2;
-}
-
-message InitArgs {
-    repeated string args = 1;
 }
