@@ -57,7 +57,7 @@ class Spawner:
             self.config = yaml.safe_load(f)
         self.load_worker_classes()
         for process in self.config["processes"]:
-            self.start_process(process)
+            self.start_process(process["name"], process["type"])
 
     def load_worker_classes(self):
         worker_classes_config = self.config["worker_classes"]
@@ -127,24 +127,20 @@ class Spawner:
 
         return False
 
-    def start_process(self, process: Dict[str, Any]) -> None:
-        worker_type = process["type"]
-        name = process["name"]
+    def start_process(self, name, type) -> None:
         if name in self._processes:
             raise ProcessError(
                 f"Process names must be unique. '{name}' already exists. Either terminate '{name}' or choose a different unique name"
             )
-        if worker_type not in self._worker_classes:
-            raise ProcessError(f"Type {worker_type} does not exist")
+        if type not in self._worker_classes:
+            raise ProcessError(f"Type {type} does not exist")
         # check if somebody tries to start a restricted worker type from outside this class
-        if not self.check_restricted_access(worker_type):
-            raise ProcessError(
-                f"Worker of type {worker_type} can only be started by server."
-            )
+        if not self.check_restricted_access(type):
+            raise ProcessError(f"Worker of type {type} can only be started by server.")
 
         # temporarily
         free_port = ""
-        if worker_type == "flow_detection":
+        if type == "flow_detection":
             for key, value in self.stream_ports.items():
                 if not value:
                     free_port = key
@@ -156,7 +152,7 @@ class Spawner:
                 )
 
         settings = self._settings_manager.dict()
-        worker_instance = self.create_worker(worker_type, free_port, settings)
+        worker_instance = self.create_worker(type, free_port, settings)
         command_queue = multiprocessing.Queue()
         response_queue = multiprocessing.Queue()
         stream_id = f"ws://localhost:90{free_port}/ws/{worker_instance.get_stream_id()}"
@@ -164,9 +160,9 @@ class Spawner:
             target=worker_instance.run, args=(command_queue, response_queue)
         )
         p.start()
-        print(f"started {name} of type {worker_type}")
+        print(f"started {name} of type {type}")
         self.add_process(
-            name, worker_type, p, command_queue, response_queue, stream_id, settings
+            name, type, p, command_queue, response_queue, stream_id, settings
         )
 
     # check if process is running otherwise throw ProcessError
@@ -212,7 +208,8 @@ class Spawner:
                 worker_type in self._restricted_classes
                 and self.check_restricted_access(worker_type)
             ):
-                self.start_process(self.find_process_in_config_by_name(name))
+                process = self.find_process_in_config_by_name(name)
+                self.start_process(process["name"], process["type"])
 
     def wait_for_manager(
         self,
@@ -328,19 +325,5 @@ class Spawner:
             for type in self._worker_classes
             if type not in self._restricted_classes
         ]
-        available_process_types = {}
-        for type in available_types:
-            current_class = self._worker_classes[type]
-            InitArgs = []
-            signature = inspect.signature(current_class.__init__)
-            for name, _ in signature.parameters.items():
-                if name not in [
-                    "self",
-                    "cls",
-                    "free_port",
-                    "collector_config",
-                    "exposed_parameters",
-                ]:  # temp free_port
-                    InitArgs.append(name)
-            available_process_types[type] = InitArgs
-        return running_processes, available_process_types
+
+        return running_processes, available_types
