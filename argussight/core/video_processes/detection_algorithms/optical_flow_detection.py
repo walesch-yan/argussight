@@ -6,17 +6,16 @@ import uuid
 import redis
 import base64
 import json
+from typing import Dict, Any
 
 from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
 
 
 class OpticalFlowDetection(Vprocess):
     def __init__(
-        self,
-        collector_config,
-        free_port,
+        self, collector_config, free_port, exposed_parameters: Dict[str, Any]
     ) -> None:
-        super().__init__(collector_config)
+        super().__init__(collector_config, exposed_parameters)
         self._previous_frame = None
         self._processed_frame = None
         self._speeds = []

@@ -35,7 +35,7 @@ class FrameFormat(Enum):
 
 
 class Vprocess:
-    def __init__(self, collector_config) -> None:
+    def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
         self._current_frame_number = -1
         self._current_frame = None
         self._missed_frames = 0
@@ -60,7 +60,8 @@ class Vprocess:
         )
         self._channel = collector_config.redis.channel
         self._config = self.load_config_from_file()
-        self._parameters, self._exposed_parameters = self._get_all_parameters()
+        self.exposed_parameters = exposed_parameters
+        self._parameters = self._get_all_parameters()
 
     def merge_dicts(self, base_dict, new_dict):
         merged = base_dict.copy()
@@ -108,9 +109,9 @@ class Vprocess:
         return {"settings": cls.change_settings}
 
     def change_settings(self, dict: Dict) -> None:
-        if not set(dict.keys()).issubset(self._exposed_parameters.keys()):
+        if not set(dict.keys()).issubset(self.exposed_parameters.keys()):
             raise ProcessError(
-                f"The given settings {dict.keys()} do not exist. Allowed settings are {self._exposed_parameters.keys()}"
+                f"The given settings {dict.keys()} do not exist. Allowed settings are {self.exposed_parameters.keys()}"
             )
 
         params_copy = self._parameters.copy()
@@ -118,7 +119,7 @@ class Vprocess:
         self.check_conflict(params_copy)
 
         self._prepare_settings_change(dict)
-        self._exposed_parameters.update(dict)
+        self.exposed_parameters.update(dict)
         self._parameters.update(dict)
 
     def _prepare_settings_change(self, dict: Dict) -> None:
@@ -137,15 +138,16 @@ class Vprocess:
             param: data["value"]
             for param, data in self._config.get("parameters", {}).items()
         }
-        exposed_params = {}
+
+        # Fill in all the exposed_params from yml
         for param, data in self._config.get("parameters", {}).items():
             if "exposed" not in data:
                 warnings.warn(
                     f"Parameter '{param}' is missing the 'exposed' flag. Defaulting to False."
                 )
             elif data["exposed"]:
-                exposed_params[param] = data["value"]
-        return all_params, exposed_params
+                self.exposed_parameters[param] = data["value"]
+        return all_params
 
     def read_frame(self, frame) -> bool:
         current_frame_number = frame["frame_number"]
@@ -218,8 +220,8 @@ class Vprocess:
 
 
 class Test(Vprocess):
-    def __init__(self, collector_config) -> None:
-        super().__init__(collector_config)
+    def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
+        super().__init__(collector_config, exposed_parameters)
         self._commands["print"] = self.print
 
     def run(self, command_queue: Queue, response_queue: Queue) -> None:

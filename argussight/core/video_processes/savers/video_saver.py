@@ -19,8 +19,8 @@ class SaveFormat(Enum):
 
 
 class VideoSaver(Vprocess):
-    def __init__(self, collector_config) -> None:
-        super().__init__(collector_config)
+    def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
+        super().__init__(collector_config, exposed_parameters)
         self._command_timeout = 0.04
         self._recording = (
             True  # change this value for stopping to save frames to iterable

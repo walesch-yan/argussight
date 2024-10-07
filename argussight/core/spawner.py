@@ -38,6 +38,7 @@ class Spawner:
         self._managers_dict = {}
         self._restricted_classes = []
         self.collector_config = collector_config
+        self._settings_manager = multiprocessing.Manager()
 
         # temporarily
         self.stream_ports = {
@@ -69,12 +70,14 @@ class Spawner:
             if not worker_class["accessible"]:
                 self._restricted_classes.append(key)
 
-    def create_worker(self, worker_type: str, free_port) -> Vprocess:
+    def create_worker(
+        self, worker_type: str, free_port, settings: Dict[str, Any]
+    ) -> Vprocess:
         if worker_type == "flow_detection":
             return self._worker_classes.get(worker_type)(
-                self.collector_config, free_port
+                self.collector_config, free_port, settings
             )
-        return self._worker_classes.get(worker_type)(self.collector_config)
+        return self._worker_classes.get(worker_type)(self.collector_config, settings)
 
     def add_process(
         self,
@@ -84,6 +87,7 @@ class Spawner:
         command_queue: multiprocessing.Queue,
         response_queue: multiprocessing.Queue,
         stream_id: str,
+        settings: Dict[str, Any],
     ) -> None:
         self._processes[name] = {
             "process_instance": process,
@@ -91,6 +95,7 @@ class Spawner:
             "response_queue": response_queue,
             "type": worker_type,
             "stream_id": stream_id,
+            "settings": settings,
         }
 
     def get_stream_id(self, process_name: str) -> str:
@@ -150,7 +155,8 @@ class Spawner:
                     f"Could not start '{name}', all streaming ports are taken"
                 )
 
-        worker_instance = self.create_worker(worker_type, free_port)
+        settings = self._settings_manager.dict()
+        worker_instance = self.create_worker(worker_type, free_port, settings)
         command_queue = multiprocessing.Queue()
         response_queue = multiprocessing.Queue()
         stream_id = f"ws://localhost:90{free_port}/ws/{worker_instance.get_stream_id()}"
@@ -159,7 +165,9 @@ class Spawner:
         )
         p.start()
         print(f"started {name} of type {worker_type}")
-        self.add_process(name, worker_type, p, command_queue, response_queue, stream_id)
+        self.add_process(
+            name, worker_type, p, command_queue, response_queue, stream_id, settings
+        )
 
     # check if process is running otherwise throw ProcessError
     def check_for_running_process(self, name: str) -> None:
@@ -192,6 +200,7 @@ class Spawner:
             worker_type = self._processes[name]["type"]
             p.terminate()
             p.join()
+            del self._processes[name]["settings"]
             del self._processes[name]
             # temp
             for key, value in self.stream_ports.items():
@@ -330,6 +339,7 @@ class Spawner:
                     "cls",
                     "free_port",
                     "collector_config",
+                    "exposed_parameters",
                 ]:  # temp free_port
                     InitArgs.append(name)
             available_process_types[type] = InitArgs
