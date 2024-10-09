@@ -1,14 +1,10 @@
 import cv2
 import numpy as np
-from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
 from typing import Tuple, Dict, Any
 from datetime import datetime
 from collections import deque
-import base64
-import redis
-import uuid
-import json
-import subprocess
+
+from argussight.core.video_processes.streamer.streamer import Streamer
 
 
 class Point:
@@ -32,25 +28,18 @@ class Point:
         return 0.0
 
 
-class FlowDetection(Vprocess):
-    def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
-        super().__init__(collector_config, exposed_parameters)
+class FlowDetection(Streamer):
+    def __init__(
+        self, collector_config, free_port, exposed_parameters: Dict[str, Any]
+    ) -> None:
+        super().__init__(collector_config, free_port, exposed_parameters)
         self._previous_frame = None
         self._min_distance = 50
         self._p0 = []
-        self._processed_frame = None
         self._speeds = deque(maxlen=20)
 
-        self._frame_format = (
-            FrameFormat.CV2
-        )  # this process needs a cv2 image (BGR) format for computations
         self._time_stamp_used = True  # this process needs the current time_stamps for calculation the flow speed
         self._command_timeout = 0.04  # this process needs to handle incoming frames consecutavely hence low waiting time
-
-        self.load_params()
-
-        self._stream_id = str(uuid.uuid1())
-        self._redis_client = redis.StrictRedis(host="localhost", port=6379)
 
     def is_point_in_roi(self, x: int, y: int) -> bool:
         rx, ry, rw, rh = self._parameters["roi"]
@@ -72,7 +61,7 @@ class FlowDetection(Vprocess):
         if len(self._p0) > 0:
             # Select new points if old ones moved out of frame
             new_points = cv2.goodFeaturesToTrack(
-                roi_gray, mask=None, **self._feature_params
+                roi_gray, mask=None, **self._parameters["feature_params"]
             )
 
             if new_points is not None:
@@ -93,7 +82,7 @@ class FlowDetection(Vprocess):
                         )
         else:
             points = cv2.goodFeaturesToTrack(
-                roi_gray, mask=None, **self._feature_params
+                roi_gray, mask=None, **self._parameters["feature_params"]
             )
             if points is not None:
                 for pt in points:
@@ -130,7 +119,7 @@ class FlowDetection(Vprocess):
             lk_params = self._parameters["lk_params"]
             lk_params["criteria"] = tuple(lk_params["criteria"])
             p1, st, err = cv2.calcOpticalFlowPyrLK(
-                gray_previous_frame, gray_frame, prev_points, None, **self._lk_params
+                gray_previous_frame, gray_frame, prev_points, None, **lk_params
             )
 
             # Check if points were found
@@ -183,40 +172,6 @@ class FlowDetection(Vprocess):
         self._processed_frame = self.detect_and_track_features(
             self._current_frame, self._current_frame_time
         )
-        if self._processed_frame is not None:
-            _, buffer = cv2.imencode(".jpg", self._processed_frame)
-            raw_image_data = buffer.tobytes()
-            frame_dict = {
-                "data": base64.b64encode(raw_image_data).decode("utf-8"),
-                "size": self._processed_frame.shape,
-            }
-            self._redis_client.publish(self._stream_id, json.dumps(frame_dict))
-            if not self._currently_streaming:
-                self._video_stream_process = subprocess.Popen(
-                    [
-                        "video-streamer",
-                        "-uri",
-                        "redis://localhost:6379",
-                        "-hs",
-                        "localhost",
-                        "-p",
-                        "90" + str(self.free_port),  # temp
-                        "-q",
-                        "4",
-                        "-s",
-                        str(self._processed_frame.shape)
-                        .replace("(", "")
-                        .replace(")", ""),
-                        "-of",
-                        "MPEG1",
-                        "-id",
-                        self._stream_id,
-                        "-irc",
-                        self._stream_id,
-                    ],
-                    close_fds=True,
-                )
-                self._currently_streaming = True
 
     def prepare_setting_change(self, key: str) -> None:
         match key:

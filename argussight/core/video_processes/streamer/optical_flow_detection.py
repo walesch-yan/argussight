@@ -1,42 +1,25 @@
 import cv2
 import numpy as np
 from datetime import datetime
-import subprocess
-import uuid
-import redis
-import base64
-import json
 from typing import Dict, Any
 
-from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
+from argussight.core.video_processes.streamer.streamer import Streamer
 
 
-class OpticalFlowDetection(Vprocess):
+class OpticalFlowDetection(Streamer):
     def __init__(
         self, collector_config, free_port, exposed_parameters: Dict[str, Any]
     ) -> None:
-        super().__init__(collector_config, exposed_parameters)
+        super().__init__(collector_config, free_port, exposed_parameters)
         self._previous_frame = None
-        self._processed_frame = None
         self._speeds = []
         self._current_speed = 0
         self._back_sub = cv2.createBackgroundSubtractorMOG2(
             history=50, varThreshold=10, detectShadows=True
         )
 
-        self._frame_format = FrameFormat.CV2
         self._time_stamp_used = True
         self._command_timeout = 0.02
-
-        self._currently_streaming = False
-        self._stream_id = str(uuid.uuid1())
-        self._redis_client = redis.StrictRedis(host="localhost", port=6379)
-
-        # temp
-        self.free_port = free_port
-
-    def get_stream_id(self) -> str:
-        return self._stream_id
 
     def update_speed_value(self) -> None:
         if not self._speeds:
@@ -141,40 +124,6 @@ class OpticalFlowDetection(Vprocess):
         self._processed_frame = self.calculate_flow(
             self._current_frame, self._current_frame_time
         )
-        if self._processed_frame is not None:
-            _, buffer = cv2.imencode(".jpg", self._processed_frame)
-            raw_image_data = buffer.tobytes()
-            frame_dict = {
-                "data": base64.b64encode(raw_image_data).decode("utf-8"),
-                "size": self._processed_frame.shape,
-            }
-            self._redis_client.publish(self._stream_id, json.dumps(frame_dict))
-            if not self._currently_streaming:
-                self._video_stream_process = subprocess.Popen(
-                    [
-                        "video-streamer",
-                        "-uri",
-                        "redis://localhost:6379",
-                        "-hs",
-                        "localhost",
-                        "-p",
-                        "90" + str(self.free_port),  # temp
-                        "-q",
-                        "4",
-                        "-s",
-                        str(self._processed_frame.shape)
-                        .replace("(", "")
-                        .replace(")", ""),
-                        "-of",
-                        "MPEG1",
-                        "-id",
-                        self._stream_id,
-                        "-irc",
-                        self._stream_id,
-                    ],
-                    close_fds=True,
-                )
-                self._currently_streaming = True
 
     def prepare_setting_change(self, key: str) -> None:
         match key:
