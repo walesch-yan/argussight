@@ -7,7 +7,7 @@ worker_classes:
     location: vprocess.Test
     accessible: true
   flow_detection:
-    location: detection_algorithms.optical_flow_detection.OpticalFlowDetection
+    location: streamer.optical_flow_detection.OpticalFlowDetection
     accessible: true
   stream_buffer:
     location: savers.stream_buffer.StreamBuffer

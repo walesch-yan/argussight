@@ -10,6 +10,7 @@ import threading
 import inspect
 
 from argussight.core.video_processes.vprocess import Vprocess, ProcessError
+from argussight.core.video_processes.streamer.streamer import Streamer
 
 
 # Return first key in dict whose Levenshtein distance to key is <= max_distance
@@ -37,6 +38,7 @@ class Spawner:
         self._worker_classes = {}
         self._managers_dict = {}
         self._restricted_classes = []
+        self._streamer_types = []
         self.collector_config = collector_config
         self._settings_manager = multiprocessing.Manager()
 
@@ -69,11 +71,13 @@ class Spawner:
             self._worker_classes[key] = getattr(module, class_name)
             if not worker_class["accessible"]:
                 self._restricted_classes.append(key)
+            if issubclass(self._worker_classes[key], Streamer):
+                self._streamer_types.append(key)
 
     def create_worker(
         self, worker_type: str, free_port, settings: Dict[str, Any]
     ) -> Vprocess:
-        if worker_type == "flow_detection":
+        if worker_type in self._streamer_types:
             return self._worker_classes.get(worker_type)(
                 self.collector_config, free_port, settings
             )
@@ -140,7 +144,7 @@ class Spawner:
 
         # temporarily
         free_port = ""
-        if type == "flow_detection":
+        if type in self._streamer_types:
             for key, value in self.stream_ports.items():
                 if not value:
                     free_port = key
