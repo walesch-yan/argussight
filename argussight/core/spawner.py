@@ -8,6 +8,7 @@ import queue
 from argussight.core.manager import Manager
 import threading
 import inspect
+import psutil
 
 from argussight.core.video_processes.vprocess import Vprocess, ProcessError
 from argussight.core.video_processes.streamer.streamer import Streamer
@@ -198,6 +199,13 @@ class Spawner:
         for name in names:
             p = self._processes[name]["process_instance"]
             worker_type = self._processes[name]["type"]
+            # first kill all possible children
+            parent = psutil.Process(p.pid)
+            children = parent.children(recursive=True)
+            for child in children:
+                print(f"Terminating child process: {child.pid}")
+                child.terminate()
+            # now kill the process itself and clean up
             p.terminate()
             p.join()
             del self._processes[name]["settings"]
