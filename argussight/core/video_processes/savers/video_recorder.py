@@ -31,7 +31,6 @@ def delete_all_files(folder_path: str) -> None:
 class Recorder(VideoSaver):
     def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
         super().__init__(collector_config, exposed_parameters)
-        self._recording = False
         self._temp_counter = 0
 
         # Make sure that there are no files in the temp folder from old recording failures
@@ -67,12 +66,13 @@ class Recorder(VideoSaver):
         return frame.size, raw_data, remove_start_end(element, "img", ".jpg")
 
     def start_record(self) -> None:
-        if self._recording:
+        if self._parameters["recording"]:
             raise ProcessError("Already recording")
-        self._recording = True
+        self._parameters.update({"recording": True})
+        self.exposed_parameters.update({"recording": True})
 
     def stop_record(self) -> None:
-        if not self._recording:
+        if not self._parameters["recording"]:
             raise ProcessError("There is no recording to stop")
 
         image_names = [
@@ -82,7 +82,7 @@ class Recorder(VideoSaver):
             )
         ]
 
-        # create a process to make a video from the recorded frames
+        # create a thread to make a video from the recorded frames
         self.executor.submit(
             self._stop_record,
             image_names,
@@ -96,8 +96,21 @@ class Recorder(VideoSaver):
             self._parameters["temp_folder"], f"{self._temp_counter}"
         )
 
-        self._recording = False
+        self._parameters.update({"recording": False})
+        self.exposed_parameters.update({"recording": False})
 
     def _stop_record(self, images_names, temp_folder):
         self.save_iterable(images_names)
         delete_all_files(temp_folder)
+
+    def _get_all_parameters(self) -> Dict[str, Any]:
+        # The "recording" parameter state, should be kept in exposed_parameters and _parameters,
+        # so that clients know about the state
+        if "recording" not in self.exposed_parameters.keys():
+            self.exposed_parameters["recording"] = (
+                False  # we set to true, as we want to continuously save to iterable
+            )
+
+        all_params = super()._get_all_parameters()
+        all_params["recording"] = self.exposed_parameters["recording"]
+        return all_params
