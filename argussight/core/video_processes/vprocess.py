@@ -106,7 +106,13 @@ class Vprocess:
 
     @classmethod
     def create_commands_dict(cls) -> Dict[str, Any]:
-        return {"settings": cls.change_settings}
+        return {
+            "settings": cls.change_settings,
+            "default_settings": cls.set_default_settings,
+        }
+
+    def set_default_settings(self) -> None:
+        self._parameters = self._get_all_parameters()
 
     def change_settings(self, dict: Dict) -> None:
         if not set(dict.keys()).issubset(self.exposed_parameters.keys()):
