@@ -22,9 +22,6 @@ class VideoSaver(Vprocess):
     def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
         super().__init__(collector_config, exposed_parameters)
         self._command_timeout = 0.04
-        self._recording = (
-            True  # change this value for stopping to save frames to iterable
-        )
 
         # saving videos and frames might take some time, the ThreadPool can be used
         # to excute these processes in a seperate thread
@@ -117,7 +114,7 @@ class VideoSaver(Vprocess):
             print(f"Started reading at frame {current_frame_number}")
         self._current_frame_number = current_frame_number
 
-        if self._recording:
+        if self._parameters["recording"]:
             frame["time_stamp"] = datetime.strptime(
                 frame["time"], self._date_format
             ).strftime(self._date_format)
@@ -130,3 +127,23 @@ class VideoSaver(Vprocess):
             super().run(command_queue, response_queue)
         finally:
             self.executor.shutdown(wait=True)
+
+    def _get_all_parameters(self) -> Dict[str, Any]:
+        # The "recording" parameter state, should be kept in exposed_parameters and _parameters,
+        # so that clients know about the state
+        if "recording" not in self.exposed_parameters.keys():
+            self.exposed_parameters["recording"] = (
+                True  # we set to true, as we want to continuously save to iterable
+            )
+
+        all_params = super()._get_all_parameters()
+        all_params["recording"] = self.exposed_parameters["recording"]
+        return all_params
+
+    def change_settings(self, dict: Dict) -> None:
+        # make sure that "recording" parameter is only set by commands
+        if "recording" in dict.keys():
+            raise ProcessError(
+                "Cannot set recording via settings. Use respective process commands!"
+            )
+        return super().change_settings(dict)

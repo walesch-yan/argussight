@@ -139,7 +139,7 @@ class Vprocess:
     def prepare_setting_change(self, key: str) -> None:
         pass
 
-    def _get_all_parameters(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    def _get_all_parameters(self) -> Dict[str, Any]:
         all_params = {
             param: data["value"]
             for param, data in self._config.get("parameters", {}).items()
