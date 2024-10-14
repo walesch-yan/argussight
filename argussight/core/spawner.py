@@ -324,7 +324,7 @@ class Spawner:
             commands = [
                 command
                 for command in current_class.create_commands_dict().keys()
-                if command != "settings"
+                if command != "settings" and command != "default_settings"
             ]
             settings = dict(process["settings"])
             running_processes[uname] = {
