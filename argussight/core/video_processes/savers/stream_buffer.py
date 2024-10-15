@@ -24,3 +24,9 @@ class StreamBuffer(VideoSaver):
 
     def add_to_iterable(self, frame: Dict) -> None:
         self._queue.append(frame)
+
+    def _max_recording_callback(self) -> None:
+        self.save_queue()
+        # this should normally not be called but if it is,
+        # there is no way to reset recording except by restarting the server
+        self._parameters["recording"] = False

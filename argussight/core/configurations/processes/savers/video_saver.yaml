@@ -10,3 +10,7 @@ parameters:
   personnal_folder:
     value: "test"
     exposed: true
+  max_recording_time:
+    # unit: seconds, 0 means not set
+    value: 0
+    exposed: false
