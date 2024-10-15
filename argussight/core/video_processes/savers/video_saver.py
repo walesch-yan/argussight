@@ -22,6 +22,7 @@ class VideoSaver(Vprocess):
     def __init__(self, collector_config, exposed_parameters: Dict[str, Any]) -> None:
         super().__init__(collector_config, exposed_parameters)
         self._command_timeout = 0.04
+        self._recording_start_time = None
 
         # saving videos and frames might take some time, the ThreadPool can be used
         # to excute these processes in a seperate thread
@@ -104,6 +105,9 @@ class VideoSaver(Vprocess):
     def add_to_iterable(self, frame: Dict) -> None:
         pass
 
+    def _max_recording_callback(self) -> None:
+        pass
+
     def read_frame(self, frame) -> None:
         current_frame_number = frame["frame_number"]
         if self._current_frame_number != -1:
@@ -115,9 +119,19 @@ class VideoSaver(Vprocess):
         self._current_frame_number = current_frame_number
 
         if self._parameters["recording"]:
-            frame["time_stamp"] = datetime.strptime(
-                frame["time"], self._date_format
-            ).strftime(self._date_format)
+            current_time = datetime.strptime(frame["time"], self._date_format)
+            if not self._recording_start_time:
+                self._recording_start_time = current_time
+            elif self._parameters["max_recording_time"] != 0:
+                total_seconds = int(
+                    (current_time - self._recording_start_time).total_seconds()
+                )
+                if total_seconds > self._parameters["max_recording_time"]:
+                    self._recording_start_time = None
+                    self._max_recording_callback()
+                    return
+
+            frame["time_stamp"] = current_time.strftime(self._date_format)
             frame["frame"] = base64.b64decode(frame["data"])
             self.add_to_iterable(frame)
 

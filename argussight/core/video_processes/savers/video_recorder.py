@@ -75,6 +75,8 @@ class Recorder(VideoSaver):
         if not self._parameters["recording"]:
             raise ProcessError("There is no recording to stop")
 
+        self._parameters["max_recording_time"] = None
+
         image_names = [
             os.path.join(self._parameters["temp_folder"], os.path.basename(image))
             for image in glob.glob(
@@ -114,3 +116,6 @@ class Recorder(VideoSaver):
         all_params = super()._get_all_parameters()
         all_params["recording"] = self.exposed_parameters["recording"]
         return all_params
+
+    def _max_recording_callback(self) -> None:
+        self.stop_record()
