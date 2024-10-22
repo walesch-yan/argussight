@@ -4,7 +4,7 @@ from argussight.core.config import get_config_from_dict
 from argussight.grpc.server import serve
 
 
-def parse_args() -> None:
+def parse_args() -> argparse.Namespace:
     opt_parser = argparse.ArgumentParser(description="mxcube argussight")
 
     opt_parser.add_argument(
