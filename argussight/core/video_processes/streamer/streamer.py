@@ -67,7 +67,7 @@ class Streamer(Vprocess):
                         "-hs",
                         "localhost",
                         "-p",
-                        "90" + str(self.free_port),  # temp
+                        str(self.free_port),
                         "-q",
                         "4",
                         "-s",

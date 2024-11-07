@@ -1,7 +1,10 @@
 ---
 
+# This indicates the path to the files of the process classes
 modules_path: argussight.core.video_processes
 
+# List of available processes and their file locations from modules_path
+# If accessible=true then process can be started via grpc call
 worker_classes:
   test:
     location: vprocess.Test
@@ -16,12 +19,22 @@ worker_classes:
     location: savers.video_recorder.Recorder
     accessible: false
 
+# This indicates the processes that are started by argussight,
+# if killed due to no response, they are restarted automatically
 processes:
-  - name: "initial test"
-    type: test
   - name: "Saver"
     type: stream_buffer
   - name: "Recorder"
     type: video_recorder
 
+# This indicates the maximal waiting time (s),
+# the spawner waits on responds from processes, before killing them
 wait_time: 5
+
+# This is the port for the rerouting of the streams
+streams_layer_port: 7000
+
+# Argussight is configured to run streams on different ports
+# It will check for free ports, whenever a new streaming process starts
+# The value below indicates at which port the search for a free port begins,
+streams_starting_port: 9000

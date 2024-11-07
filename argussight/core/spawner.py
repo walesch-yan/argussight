@@ -1,40 +1,23 @@
 import yaml
 import multiprocessing
-from typing import List, Dict, Any, Union, Tuple
+from typing import List, Dict, Any, Tuple
 import importlib
 import os
-import Levenshtein
 import queue
 from argussight.core.manager import Manager
 import threading
 import inspect
 import psutil
+import requests
 
+from argussight.core.helper_functions import find_close_key, find_free_port
 from argussight.core.video_processes.vprocess import Vprocess, ProcessError
 from argussight.core.video_processes.streamer.streamer import Streamer
-
-
-# Return first key in dict whose Levenshtein distance to key is <= max_distance
-def find_close_key(d: dict, key: str, max_distance: int = 3) -> Union[str, None]:
-    min_distance = float("inf")
-    closest_key = None
-
-    for dict_key in d:
-        distance = Levenshtein.distance(key, dict_key)
-        if distance < min_distance:
-            min_distance = distance
-            closest_key = dict_key
-
-    if min_distance <= max_distance:
-        return closest_key
-
-    return None
+import argussight.streamsproxy as StreamsProxy
 
 
 class Spawner:
     def __init__(self, collector_config) -> None:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        self._config_file = os.path.join(current_dir, "configurations/config.yaml")
         self._processes = {}
         self._worker_classes = {}
         self._managers_dict = {}
@@ -42,23 +25,22 @@ class Spawner:
         self._streamer_types = []
         self.collector_config = collector_config
         self._settings_manager = multiprocessing.Manager()
+        self._streams = set([])
 
-        # temporarily
-        self.stream_ports = {
-            90: False,
-            91: False,
-            92: False,
-            93: False,
-            94: False,
-            95: False,
-        }
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.load_config(os.path.join(current_dir, "configurations/config.yaml"))
 
-        self.load_config()
+        print(f"running stream_layer on port {self.config['streams_layer_port']}")
+        streams_layer_process = multiprocessing.Process(
+            target=StreamsProxy.run, args=(self.config["streams_layer_port"],)
+        )
+        streams_layer_process.start()
 
-    def load_config(self) -> None:
-        with open(self._config_file, "r") as f:
+    def load_config(self, path_config_file: str) -> None:
+        with open(path_config_file, "r") as f:
             self.config = yaml.safe_load(f)
         self.load_worker_classes()
+
         for process in self.config["processes"]:
             self.start_process(process["name"], process["type"])
 
@@ -91,7 +73,6 @@ class Spawner:
         process: multiprocessing.Process,
         command_queue: multiprocessing.Queue,
         response_queue: multiprocessing.Queue,
-        stream_id: str,
         settings: Dict[str, Any],
     ) -> None:
         self._processes[name] = {
@@ -99,12 +80,8 @@ class Spawner:
             "command_queue": command_queue,
             "response_queue": response_queue,
             "type": worker_type,
-            "stream_id": stream_id,
             "settings": settings,
         }
-
-    def get_stream_id(self, process_name: str) -> str:
-        return self._processes[process_name]["stream_id"]
 
     # This function checks if worker_type can be accessed
     def check_restricted_access(self, worker_type: str) -> bool:
@@ -143,32 +120,27 @@ class Spawner:
         if not self.check_restricted_access(type):
             raise ProcessError(f"Worker of type {type} can only be started by server.")
 
-        # temporarily
-        free_port = ""
-        if type in self._streamer_types:
-            for key, value in self.stream_ports.items():
-                if not value:
-                    free_port = key
-                    self.stream_ports[key] = name
-                    break
-            if free_port == "":
-                raise ProcessError(
-                    f"Could not start '{name}', all streaming ports are taken"
-                )
-
+        free_port = find_free_port(self.config["streams_starting_port"])
         settings = self._settings_manager.dict()
         worker_instance = self.create_worker(type, free_port, settings)
         command_queue = multiprocessing.Queue()
         response_queue = multiprocessing.Queue()
-        stream_id = f"ws://localhost:90{free_port}/ws/{worker_instance.get_stream_id()}"
         p = multiprocessing.Process(
             target=worker_instance.run, args=(command_queue, response_queue)
         )
-        p.start()
         print(f"started {name} of type {type}")
-        self.add_process(
-            name, type, p, command_queue, response_queue, stream_id, settings
-        )
+        p.start()
+        if isinstance(worker_instance, Streamer):
+            requests.post(
+                f"http://localhost:{str(self.config['streams_layer_port'])}/add-stream",
+                params={
+                    "path": name,
+                    "port": free_port,
+                    "id": worker_instance.get_stream_id(),
+                },
+            )
+            self._streams.add(name)
+        self.add_process(name, type, p, command_queue, response_queue, settings)
 
     # check if process is running otherwise throw ProcessError
     def check_for_running_process(self, name: str) -> None:
@@ -210,11 +182,14 @@ class Spawner:
             p.join()
             del self._processes[name]["settings"]
             del self._processes[name]
-            # temp
-            for key, value in self.stream_ports.items():
-                if value == name:
-                    self.stream_ports[key] = False
-            #
+
+            if worker_type in self._streamer_types:
+                requests.post(
+                    f"http://localhost:{str(self.config['streams_layer_port'])}/remove-stream",
+                    params={"path": name},
+                )
+                self._streams.discard(name)
+
             print(f"terminated {name} of type {worker_type}")
             if (
                 worker_type in self._restricted_classes
@@ -339,4 +314,4 @@ class Spawner:
             if type not in self._restricted_classes
         ]
 
-        return running_processes, available_types
+        return running_processes, available_types, self._streams

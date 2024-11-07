@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<=3.12"
-numpy = ">=1.26.0"
+numpy = "^1.26.0"
 opencv-python = "4.10.0.84"
 pillow = "<=10.4.0, >=9.4.0"
 pydantic = ">=2.8.2,<2.9.0"
@@ -17,9 +17,13 @@ pyyaml = "^6.0.1"
 grpcio = "^1.38.0"
 grpcio-tools = "^1.38.0"
 python-levenshtein = "^0.25.1"
+Flask = "^3.0.3"
+requests = "^2.32.3"
+websocket-client = "^1.8.0"
 
 [tool.poetry.scripts]
 argussight = "argussight.main:run"
+stream-layer = "argussight.streamsproxy:run"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.8.0"
