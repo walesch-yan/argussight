@@ -22,7 +22,7 @@ from google.protobuf import any_pb2 as google_dot_protobuf_dot_any__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x13\x61rgus_service.proto\x12\nargussight\x1a\x19google/protobuf/any.proto"3\n\x15StartProcessesRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t"R\n\x16StartProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t\x12\x11\n\tstream_id\x18\x03 \x01(\t"*\n\x19TerminateProcessesRequest\x12\r\n\x05names\x18\x01 \x03(\t"C\n\x1aTerminateProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t"7\n\x16ManageProcessesRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x63ommand\x18\x02 \x01(\t"@\n\x17ManageProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t"\xaf\x01\n\x15\x43hangeSettingsRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x41\n\x08settings\x18\x02 \x03(\x0b\x32/.argussight.ChangeSettingsRequest.SettingsEntry\x1a\x45\n\rSettingsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12#\n\x05value\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any:\x02\x38\x01"?\n\x16\x43hangeSettingsResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t"\x15\n\x13GetProcessesRequest"\x90\x02\n\x14GetProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12Q\n\x11running_processes\x18\x02 \x03(\x0b\x32\x36.argussight.GetProcessesResponse.RunningProcessesEntry\x12\x1f\n\x17\x61vailable_process_types\x18\x03 \x03(\t\x12\x15\n\rerror_message\x18\x04 \x01(\t\x1a]\n\x15RunningProcessesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x33\n\x05value\x18\x02 \x01(\x0b\x32$.argussight.RunningProcessDictionary:\x02\x38\x01"\xc7\x01\n\x18RunningProcessDictionary\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08\x63ommands\x18\x02 \x03(\t\x12\x44\n\x08settings\x18\x03 \x03(\x0b\x32\x32.argussight.RunningProcessDictionary.SettingsEntry\x1a\x45\n\rSettingsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12#\n\x05value\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any:\x02\x38\x01\x32\xd6\x03\n\x0eSpawnerService\x12W\n\x0eStartProcesses\x12!.argussight.StartProcessesRequest\x1a".argussight.StartProcessesResponse\x12\x63\n\x12TerminateProcesses\x12%.argussight.TerminateProcessesRequest\x1a&.argussight.TerminateProcessesResponse\x12Z\n\x0fManageProcesses\x12".argussight.ManageProcessesRequest\x1a#.argussight.ManageProcessesResponse\x12Q\n\x0cGetProcesses\x12\x1f.argussight.GetProcessesRequest\x1a .argussight.GetProcessesResponse\x12W\n\x0e\x43hangeSettings\x12!.argussight.ChangeSettingsRequest\x1a".argussight.ChangeSettingsResponseb\x06proto3'
+    b'\n\x13\x61rgus_service.proto\x12\nargussight\x1a\x19google/protobuf/any.proto"3\n\x15StartProcessesRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t"?\n\x16StartProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t"*\n\x19TerminateProcessesRequest\x12\r\n\x05names\x18\x01 \x03(\t"C\n\x1aTerminateProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t"7\n\x16ManageProcessesRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x63ommand\x18\x02 \x01(\t"@\n\x17ManageProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t"\xaf\x01\n\x15\x43hangeSettingsRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x41\n\x08settings\x18\x02 \x03(\x0b\x32/.argussight.ChangeSettingsRequest.SettingsEntry\x1a\x45\n\rSettingsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12#\n\x05value\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any:\x02\x38\x01"?\n\x16\x43hangeSettingsResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x15\n\rerror_message\x18\x02 \x01(\t"\x15\n\x13GetProcessesRequest"\xa1\x02\n\x14GetProcessesResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12Q\n\x11running_processes\x18\x02 \x03(\x0b\x32\x36.argussight.GetProcessesResponse.RunningProcessesEntry\x12\x1f\n\x17\x61vailable_process_types\x18\x03 \x03(\t\x12\x15\n\rerror_message\x18\x04 \x01(\t\x12\x0f\n\x07streams\x18\x05 \x03(\t\x1a]\n\x15RunningProcessesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x33\n\x05value\x18\x02 \x01(\x0b\x32$.argussight.RunningProcessDictionary:\x02\x38\x01"\xc7\x01\n\x18RunningProcessDictionary\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08\x63ommands\x18\x02 \x03(\t\x12\x44\n\x08settings\x18\x03 \x03(\x0b\x32\x32.argussight.RunningProcessDictionary.SettingsEntry\x1a\x45\n\rSettingsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12#\n\x05value\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any:\x02\x38\x01\x32\xd6\x03\n\x0eSpawnerService\x12W\n\x0eStartProcesses\x12!.argussight.StartProcessesRequest\x1a".argussight.StartProcessesResponse\x12\x63\n\x12TerminateProcesses\x12%.argussight.TerminateProcessesRequest\x1a&.argussight.TerminateProcessesResponse\x12Z\n\x0fManageProcesses\x12".argussight.ManageProcessesRequest\x1a#.argussight.ManageProcessesResponse\x12Q\n\x0cGetProcesses\x12\x1f.argussight.GetProcessesRequest\x1a .argussight.GetProcessesResponse\x12W\n\x0e\x43hangeSettings\x12!.argussight.ChangeSettingsRequest\x1a".argussight.ChangeSettingsResponseb\x06proto3'
 )
 
 _globals = globals()
@@ -41,31 +41,31 @@ if not _descriptor._USE_C_DESCRIPTORS:
     _globals["_STARTPROCESSESREQUEST"]._serialized_start = 62
     _globals["_STARTPROCESSESREQUEST"]._serialized_end = 113
     _globals["_STARTPROCESSESRESPONSE"]._serialized_start = 115
-    _globals["_STARTPROCESSESRESPONSE"]._serialized_end = 197
-    _globals["_TERMINATEPROCESSESREQUEST"]._serialized_start = 199
-    _globals["_TERMINATEPROCESSESREQUEST"]._serialized_end = 241
-    _globals["_TERMINATEPROCESSESRESPONSE"]._serialized_start = 243
-    _globals["_TERMINATEPROCESSESRESPONSE"]._serialized_end = 310
-    _globals["_MANAGEPROCESSESREQUEST"]._serialized_start = 312
-    _globals["_MANAGEPROCESSESREQUEST"]._serialized_end = 367
-    _globals["_MANAGEPROCESSESRESPONSE"]._serialized_start = 369
-    _globals["_MANAGEPROCESSESRESPONSE"]._serialized_end = 433
-    _globals["_CHANGESETTINGSREQUEST"]._serialized_start = 436
-    _globals["_CHANGESETTINGSREQUEST"]._serialized_end = 611
-    _globals["_CHANGESETTINGSREQUEST_SETTINGSENTRY"]._serialized_start = 542
-    _globals["_CHANGESETTINGSREQUEST_SETTINGSENTRY"]._serialized_end = 611
-    _globals["_CHANGESETTINGSRESPONSE"]._serialized_start = 613
-    _globals["_CHANGESETTINGSRESPONSE"]._serialized_end = 676
-    _globals["_GETPROCESSESREQUEST"]._serialized_start = 678
-    _globals["_GETPROCESSESREQUEST"]._serialized_end = 699
-    _globals["_GETPROCESSESRESPONSE"]._serialized_start = 702
-    _globals["_GETPROCESSESRESPONSE"]._serialized_end = 974
-    _globals["_GETPROCESSESRESPONSE_RUNNINGPROCESSESENTRY"]._serialized_start = 881
-    _globals["_GETPROCESSESRESPONSE_RUNNINGPROCESSESENTRY"]._serialized_end = 974
-    _globals["_RUNNINGPROCESSDICTIONARY"]._serialized_start = 977
-    _globals["_RUNNINGPROCESSDICTIONARY"]._serialized_end = 1176
-    _globals["_RUNNINGPROCESSDICTIONARY_SETTINGSENTRY"]._serialized_start = 542
-    _globals["_RUNNINGPROCESSDICTIONARY_SETTINGSENTRY"]._serialized_end = 611
-    _globals["_SPAWNERSERVICE"]._serialized_start = 1179
-    _globals["_SPAWNERSERVICE"]._serialized_end = 1649
+    _globals["_STARTPROCESSESRESPONSE"]._serialized_end = 178
+    _globals["_TERMINATEPROCESSESREQUEST"]._serialized_start = 180
+    _globals["_TERMINATEPROCESSESREQUEST"]._serialized_end = 222
+    _globals["_TERMINATEPROCESSESRESPONSE"]._serialized_start = 224
+    _globals["_TERMINATEPROCESSESRESPONSE"]._serialized_end = 291
+    _globals["_MANAGEPROCESSESREQUEST"]._serialized_start = 293
+    _globals["_MANAGEPROCESSESREQUEST"]._serialized_end = 348
+    _globals["_MANAGEPROCESSESRESPONSE"]._serialized_start = 350
+    _globals["_MANAGEPROCESSESRESPONSE"]._serialized_end = 414
+    _globals["_CHANGESETTINGSREQUEST"]._serialized_start = 417
+    _globals["_CHANGESETTINGSREQUEST"]._serialized_end = 592
+    _globals["_CHANGESETTINGSREQUEST_SETTINGSENTRY"]._serialized_start = 523
+    _globals["_CHANGESETTINGSREQUEST_SETTINGSENTRY"]._serialized_end = 592
+    _globals["_CHANGESETTINGSRESPONSE"]._serialized_start = 594
+    _globals["_CHANGESETTINGSRESPONSE"]._serialized_end = 657
+    _globals["_GETPROCESSESREQUEST"]._serialized_start = 659
+    _globals["_GETPROCESSESREQUEST"]._serialized_end = 680
+    _globals["_GETPROCESSESRESPONSE"]._serialized_start = 683
+    _globals["_GETPROCESSESRESPONSE"]._serialized_end = 972
+    _globals["_GETPROCESSESRESPONSE_RUNNINGPROCESSESENTRY"]._serialized_start = 879
+    _globals["_GETPROCESSESRESPONSE_RUNNINGPROCESSESENTRY"]._serialized_end = 972
+    _globals["_RUNNINGPROCESSDICTIONARY"]._serialized_start = 975
+    _globals["_RUNNINGPROCESSDICTIONARY"]._serialized_end = 1174
+    _globals["_RUNNINGPROCESSDICTIONARY_SETTINGSENTRY"]._serialized_start = 523
+    _globals["_RUNNINGPROCESSDICTIONARY_SETTINGSENTRY"]._serialized_end = 592
+    _globals["_SPAWNERSERVICE"]._serialized_start = 1177
+    _globals["_SPAWNERSERVICE"]._serialized_end = 1647
 # @@protoc_insertion_point(module_scope)
