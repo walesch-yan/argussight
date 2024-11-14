@@ -1,8 +1,9 @@
-from multiprocessing import Queue
-from datetime import datetime
-from threading import Event
-from argussight.core.video_processes.vprocess import ProcessError
 import queue
+from datetime import datetime
+from multiprocessing import Queue
+from threading import Event
+
+from argussight.core.video_processes.vprocess import ProcessError
 
 
 class Manager:

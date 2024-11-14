@@ -1,6 +1,7 @@
-import Levenshtein
-from typing import Union
 import socket
+from typing import Union
+
+import Levenshtein
 
 
 def find_close_key(d: dict, key: str, max_distance: int = 3) -> Union[str, None]:

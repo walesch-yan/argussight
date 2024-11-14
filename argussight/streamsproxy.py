@@ -1,5 +1,5 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import websockets
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 app = FastAPI()
 

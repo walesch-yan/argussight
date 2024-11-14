@@ -1,8 +1,9 @@
+from collections import deque
+from datetime import datetime
+from typing import Any, Dict, Tuple
+
 import cv2
 import numpy as np
-from typing import Tuple, Dict, Any
-from datetime import datetime
-from collections import deque
 
 from argussight.core.video_processes.streamer.streamer import Streamer
 

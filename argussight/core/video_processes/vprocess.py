@@ -1,20 +1,20 @@
-from enum import Enum
-from PIL import Image
-from typing import Tuple, Dict, Any
-import cv2
-import numpy as np
-from datetime import datetime
-from multiprocessing import Queue
+import base64
+import inspect
+import json
+import os
 import queue
 import time
-import redis
-import json
-import base64
-import yaml
-import os
 import warnings
-import inspect
+from datetime import datetime
+from enum import Enum
+from multiprocessing import Queue
+from typing import Any, Dict, Tuple
 
+import cv2
+import numpy as np
+import redis
+import yaml
+from PIL import Image
 
 CONFIG_BASE_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "../configurations/processes"

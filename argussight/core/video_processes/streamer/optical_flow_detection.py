@@ -1,7 +1,8 @@
+from datetime import datetime
+from typing import Any, Dict
+
 import cv2
 import numpy as np
-from datetime import datetime
-from typing import Dict, Any
 
 from argussight.core.video_processes.streamer.streamer import Streamer
 

@@ -1,7 +1,9 @@
+import time
+
 import grpc
+
 import argussight.grpc.argus_service_pb2 as pb2
 import argussight.grpc.argus_service_pb2_grpc as pb2_grpc
-import time
 from argussight.core.video_processes.savers.video_saver import SaveFormat
 from argussight.grpc.helper_functions import pack_to_any
 

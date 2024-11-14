@@ -1,19 +1,20 @@
-import yaml
-import multiprocessing
-from typing import List, Dict, Any, Tuple
 import importlib
+import inspect
+import multiprocessing
 import os
 import queue
-from argussight.core.manager import Manager
 import threading
-import inspect
+from typing import Any, Dict, List, Tuple
+
 import psutil
 import requests
+import yaml
 
-from argussight.core.helper_functions import find_close_key, find_free_port
-from argussight.core.video_processes.vprocess import Vprocess, ProcessError
-from argussight.core.video_processes.streamer.streamer import Streamer
 import argussight.streamsproxy as StreamsProxy
+from argussight.core.helper_functions import find_close_key, find_free_port
+from argussight.core.manager import Manager
+from argussight.core.video_processes.streamer.streamer import Streamer
+from argussight.core.video_processes.vprocess import ProcessError, Vprocess
 
 
 class Spawner:

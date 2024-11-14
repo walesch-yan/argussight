@@ -1,8 +1,9 @@
-from typing import Any, Dict, Tuple
-import os
 import glob
-from PIL import Image
+import os
 import shutil
+from typing import Any, Dict, Tuple
+
+from PIL import Image
 
 from argussight.core.video_processes.savers.video_saver import VideoSaver
 from argussight.core.video_processes.vprocess import ProcessError

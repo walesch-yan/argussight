@@ -1,11 +1,12 @@
-import grpc
-from concurrent import futures
 import time
+from concurrent import futures
+
+import grpc
+
 import argussight.grpc.argus_service_pb2 as pb2
 import argussight.grpc.argus_service_pb2_grpc as pb2_grpc
+from argussight.core.spawner import ProcessError, Spawner
 from argussight.grpc.helper_functions import pack_to_any, unpack_from_any
-
-from argussight.core.spawner import Spawner, ProcessError
 
 
 class SpawnerService(pb2_grpc.SpawnerServiceServicer):

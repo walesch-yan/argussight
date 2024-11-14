@@ -76,3 +76,8 @@ repos:
       - id: flake8
         name: Flake8
         exclude: (grpc/)
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
