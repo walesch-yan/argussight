@@ -1,14 +1,15 @@
-from typing import Any, Dict
-import redis
+import base64
 import json
 import queue
+import subprocess
 import uuid
 from multiprocessing import Queue
-import base64
-import subprocess
-import cv2
+from typing import Any, Dict
 
-from argussight.core.video_processes.vprocess import Vprocess, FrameFormat
+import cv2
+import redis
+
+from argussight.core.video_processes.vprocess import FrameFormat, Vprocess
 
 
 class Streamer(Vprocess):

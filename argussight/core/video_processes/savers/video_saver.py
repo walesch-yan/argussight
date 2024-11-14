@@ -1,15 +1,16 @@
-from enum import Enum
-from PIL import Image
-from typing import Iterable, Dict, Any, Tuple
-from datetime import datetime
 import base64
-import numpy as np
-import cv2
-import os
-from multiprocessing import Queue
 import concurrent.futures
+import os
+from datetime import datetime
+from enum import Enum
+from multiprocessing import Queue
+from typing import Any, Dict, Iterable, Tuple
 
-from argussight.core.video_processes.vprocess import Vprocess, ProcessError
+import cv2
+import numpy as np
+from PIL import Image
+
+from argussight.core.video_processes.vprocess import ProcessError, Vprocess
 
 
 class SaveFormat(Enum):

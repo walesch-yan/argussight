@@ -1,5 +1,5 @@
 from collections import deque
-from typing import Dict, Any
+from typing import Any, Dict
 
 from argussight.core.video_processes.savers.video_saver import VideoSaver
 

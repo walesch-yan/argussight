@@ -1,9 +1,11 @@
+import json
+import threading
+import time
+
 import grpc
+
 import argussight.grpc.argus_service_pb2 as pb2
 import argussight.grpc.argus_service_pb2_grpc as pb2_grpc
-import threading
-import json
-import time
 
 
 def make_request(stub, request_data):
