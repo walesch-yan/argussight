@@ -1,0 +1,38 @@
+---
+
+name: Deploy Sphinx Documentation to GitHub Pages
+
+# yamllint disable
+on:
+  push:
+    branches:
+      - main
+# yamllint enable
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install sphinx sphinx_rtd_theme myst_parser
+
+      - name: Build Sphinx Documentation
+        run: sphinx-build -b html docs/ docs/build/html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build/html
+          destination_branch: gh-pages
