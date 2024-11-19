@@ -1,0 +1,207 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Argussight &mdash; Argussight 0.1.0-dev documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=ee2d09ae"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configurations" href="config/index.html" />
+    <link rel="prev" title="Argussight documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Argussight
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Argussight</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config/index.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Argussight</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Argussight</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/content.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="argussight">
+<h1>Argussight<a class="headerlink" href="#argussight" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">Argussight</span></code> is a versatile video processing tool designed to manage and run multiple streaming processes using one or several input sources. It primarily works with FFmpeg streams, ensuring high compatibility and performance for video processing tasks.</p>
+<p>Originally developed as an extension of the <a class="reference external" href="https://github.com/mxcube/video-streamer">video-streamer</a> project by the <a class="reference external" href="https://github.com/mxcube">MXCuBE</a> organization, <code class="docutils literal notranslate"><span class="pre">Argussight</span></code> can also operate as a standalone application. Its flexible design allows it to be reconfigured for integration with other components, making it adaptable to various use cases.</p>
+<section id="design-overview">
+<h2>Design Overview<a class="headerlink" href="#design-overview" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Argussight</span></code> is built around four key components, each playing a vital role in its functionality.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Spawner</span></code>: The core of <code class="docutils literal notranslate"><span class="pre">Argussight</span></code>, responsible for controlling, spawning and terminating video processes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GRPC</span> <span class="pre">Server</span></code>: Thightly connected to the <code class="docutils literal notranslate"><span class="pre">Spawner</span></code>, it handles the communication with a client application.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Video</span> <span class="pre">processes</span></code>: Processes that are each running a specific video-related task, like generating or modifying camera streams.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Stream-Layer</span></code>: An abstraction layer positioned between <strong>streaming</strong> processes and external systems. This layer simplifies access to the streams while enhancing security through port abstraction.</p></li>
+</ul>
+<p><img alt="Argussight Overview" src="_images/Overview.svg" /></p>
+</section>
+<section id="advantages-of-using-argussight">
+<h2>Advantages of using Argussight<a class="headerlink" href="#advantages-of-using-argussight" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Enhanced User Experience</strong>: Multiple streams could be displayed at once from the same source, providing a comprehensive view from different angles and/or sources.</p></li>
+<li><p><strong>Facilitates Usage of Computer Vision Algorithms</strong>: Developers can make use of different computer vision algorithms, directly on the images and do not need to handle the complexity of handling video-loading or streaming.</p></li>
+<li><p><strong>On-the-Fly Configuration</strong>: The system can dynamically adjust streams, such as changing parameters for video anlaysis, change position of region of interest or simply switching between views according to user preferences, withou needing to restart or reconfigure the entire process.</p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>First you need to clone the repository.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">walesch</span><span class="o">-</span><span class="n">yan</span><span class="o">/</span><span class="n">argussight</span><span class="o">.</span><span class="n">git</span>
+
+<span class="c1"># Navigate to the newly created directory</span>
+<span class="n">cd</span> <span class="n">argussight</span>
+</pre></div>
+</div>
+<p>Optionally, you can create a <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html">conda</a> environment for this project</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">conda</span><span class="o">-</span><span class="n">envrionment</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+<p>If you chose not to, you need to have <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> installed on your system, you can do so via your corresponding package manager.
+On Debian-based Linux distributions (Ubuntu, Debian, Pop!_OS, …) for example you can install it like this</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">ffmpeg</span>
+</pre></div>
+</div>
+<p>Now install the remaining dependencies using <code class="docutils literal notranslate"><span class="pre">pip</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># for Development</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+
+<span class="c1"># for Usage</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>or <code class="docutils literal notranslate"><span class="pre">poetry</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">poetry</span> <span class="n">install</span>
+</pre></div>
+</div>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<blockquote>
+<div><p class="rubric" id="attention">⚠️ Attention ⚠️</p>
+<p>If you want to use the <code class="docutils literal notranslate"><span class="pre">Recorder</span></code> class (enabled per default), please be aware that it creates a temporary folder in the location, you start the server at.
+In the configurations folder, you can change the name of said folder, please make sure that no other folder in your current location has the same name, as it will otherwise <strong>delete</strong> the contents of that folder (default is <code class="docutils literal notranslate"><span class="pre">temp</span></code>).</p>
+<ul class="simple">
+<li><p>To rename the temporary folder, go to <code class="docutils literal notranslate"><span class="pre">argussight/core/configurations/processes/savers/video_recorder.yaml</span></code> and change the value of <code class="docutils literal notranslate"><span class="pre">temp_folder</span></code>.</p></li>
+<li><p>To disable the <code class="docutils literal notranslate"><span class="pre">Recorder</span></code> class, go to <code class="docutils literal notranslate"><span class="pre">argussight/core/configurations/config.yaml</span></code> and remove the process named <code class="docutils literal notranslate"><span class="pre">Recorder</span></code></p></li>
+</ul>
+</div></blockquote>
+<section id="start-the-server">
+<h3>Start the Server<a class="headerlink" href="#start-the-server" title="Link to this heading"></a></h3>
+<p>Once you installed all the dependencies, you can run the <code class="docutils literal notranslate"><span class="pre">argussight</span></code> server by using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">argussight</span>
+</pre></div>
+</div>
+<p>command in a terminal window.</p>
+</section>
+<section id="start-communication-with-the-grpc-server">
+<h3>Start communication with the GRPC Server<a class="headerlink" href="#start-communication-with-the-grpc-server" title="Link to this heading"></a></h3>
+<p>To communicate with the grpc server, you need to establish a connection with the channel. By default the server is running on port 50051 (changeable in the <code class="docutils literal notranslate"><span class="pre">argussight/grpc/server.py</span></code> file). The code example below shows how to start a connection and get a response for the <code class="docutils literal notranslate"><span class="pre">GetProcessesRequest</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">grpc</span>
+<span class="kn">import</span> <span class="nn">argussight.grpc.argus_service_pb2</span> <span class="k">as</span> <span class="nn">pb2</span>
+<span class="kn">import</span> <span class="nn">argussight.grpc.argus_service_pb2_grpc</span> <span class="k">as</span> <span class="nn">pb2_grpc</span>
+
+<span class="n">channel</span> <span class="o">=</span> <span class="n">grpc</span><span class="o">.</span><span class="n">insecure_channel</span><span class="p">(</span><span class="s2">&quot;localhost:50051&quot;</span><span class="p">)</span>
+<span class="n">stub</span> <span class="o">=</span> <span class="n">pb2_grpc</span><span class="o">.</span><span class="n">SpawnerServiceStub</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+<span class="c1"># try to reach the server</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">stub</span><span class="o">.</span><span class="n">GetProcesses</span><span class="p">(</span><span class="n">pb2</span><span class="o">.</span><span class="n">GetProcessesRequest</span><span class="p">())</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="c1"># handle exception here</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="access-your-streams">
+<h3>Access your streams<a class="headerlink" href="#access-your-streams" title="Link to this heading"></a></h3>
+<p>To access your streams, you first need a running streaming process. To create one, you need to make a process that inherits the <code class="docutils literal notranslate"><span class="pre">Streamer</span></code> class. Please refer to the documentation (<strong>ToDo</strong>) on how to do that. If your class inherits <code class="docutils literal notranslate"><span class="pre">Streamer</span></code> and is correctly configured in the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file, the <code class="docutils literal notranslate"><span class="pre">Argussight</span></code> class will take care of adding every instance of your class to the <code class="docutils literal notranslate"><span class="pre">Abstraction-Layer</span></code>. To access the streams from outside, you can then create a websocket connection to <code class="docutils literal notranslate"><span class="pre">ws://localhost:7000/ws/${name}</span></code>, where <code class="docutils literal notranslate"><span class="pre">localhost:7000</span></code> is the default location of the <code class="docutils literal notranslate"><span class="pre">Abstraction-Layer</span></code> (configurable in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>), and <code class="docutils literal notranslate"><span class="pre">name</span></code> is the unique name of your process instance.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Argussight documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="config/index.html" class="btn btn-neutral float-right" title="Configurations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, MXCuBE.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
