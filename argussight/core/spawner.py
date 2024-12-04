@@ -110,6 +110,17 @@ class Spawner:
 
         return False
 
+    def add_stream(self, name, port, stream_id) -> None:
+        requests.post(
+            f"http://localhost:{str(self.config['streams_layer_port'])}/add-stream",
+            params={
+                "path": name,
+                "port": port,
+                "id": stream_id,
+            },
+        )
+        self._streams.add(name)
+
     def start_process(self, name, type) -> None:
         if name in self._processes:
             raise ProcessError(
@@ -132,15 +143,7 @@ class Spawner:
         print(f"started {name} of type {type}")
         p.start()
         if isinstance(worker_instance, Streamer):
-            requests.post(
-                f"http://localhost:{str(self.config['streams_layer_port'])}/add-stream",
-                params={
-                    "path": name,
-                    "port": free_port,
-                    "id": worker_instance.get_stream_id(),
-                },
-            )
-            self._streams.add(name)
+            self.add_stream(name, free_port, worker_instance.get_stream_id())
         self.add_process(name, type, p, command_queue, response_queue, settings)
 
     # check if process is running otherwise throw ProcessError
