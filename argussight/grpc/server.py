@@ -89,6 +89,13 @@ class SpawnerService(pb2_grpc.SpawnerServiceServicer):
         except Exception as e:
             return pb2.ChangeSettingsResponse(status="failure", error_message=str(e))
 
+    def AddStream(self, request, context):
+        try:
+            self.spawner.add_stream(request.name, request.port, request.stream_id)
+            return pb2.AddStreamResponse(status="success")
+        except Exception as e:
+            return pb2.AddStreamResponse(status="failure", error_message=str(e))
+
 
 def serve(collector_config):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
