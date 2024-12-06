@@ -1,0 +1,30 @@
+---
+
+site_name: Argussight
+site_url: "https://github.com/walesch-yan/argussight"
+
+nav:
+  - Home: index.md
+  - About: about.md
+  - Developers Guidelines:
+      - Abstraction-Layer: devs/video-layer.md
+      - Architecture: devs/overview.md
+      - Contributing: devs/contributing.md
+      - Documentation: devs/documentation.md
+      - Spawner: devs/spawner.md
+      - Vprocess Class: devs/vprocess.md
+  - Installation: installation.md
+  - Usage:
+      - Configurations: usage/configurations.md
+      - GRPC: usage/grpc.md
+      - Processes: usage/processes.md
+      - Setup: usage/setup.md
+  - FAQ: faq.md
+  - License: license.md
+
+plugins:
+  - macros:
+      module_name: docs_config/main
+
+extra:
+  license_path: LICENSE
