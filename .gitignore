@@ -32,3 +32,6 @@ pip-delete-this-directory.txt
 *.mp4
 *.avi
 logs/
+
+# documantation builds
+site/
