@@ -1,6 +1,6 @@
 ---
 
-name: Deploy Sphinx Documentation to GitHub Pages
+name: Deploy Mkdocs Documentation to GitHub Pages
 
 # yamllint disable
 on:
