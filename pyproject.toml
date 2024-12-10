@@ -7,7 +7,7 @@ license = "LGPL-3.0-or-later"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<=3.12"
+python = ">=3.10,<3.12"
 numpy = "^1.26.0"
 opencv-python = "4.10.0.84"
 pillow = "<=10.4.0, >=9.4.0"
@@ -20,6 +20,7 @@ python-levenshtein = "^0.25.1"
 Flask = "^3.0.3"
 requests = "^2.32.3"
 websocket-client = "^1.8.0"
+mxcube-video-streamer = ">=1.6.0"
 
 [tool.poetry.scripts]
 argussight = "argussight.main:run"
