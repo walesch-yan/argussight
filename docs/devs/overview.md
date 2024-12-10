@@ -12,6 +12,8 @@
 
 ![Argussight Overview](../images/Overview.svg)
 
+---
+
 ## Connecting to other Applications
 
 The following section is explained in more detail in our [Setup](../usage/setup.md) section.
@@ -23,3 +25,13 @@ To connect Argussight to your application, you need to establish a connection vi
 To add [video processes](../usage/processes.md) to your streams, you need to create [Redis Pub/Sub](https://redis.io/docs/latest/develop/interact/pubsub/) channels as input to the processes. For a full explanation on how to connect the input streams to the processes, check out the [Vprocess](./vprocess.md) class and our [Configurations](../usage/configurations.md) section.
 
 We recommend using [MXCuBE's Video-Streamer](https://github.com/mxcube/video-streamer) to start a [Redis Pub/Sub](https://redis.io/docs/latest/develop/interact/pubsub/) Channel from any camera device or stream.
+
+---
+
+## Benefits of Source Obfuscation
+
+The introduction of the [Abstraction-Layer](./video-layer.md) allows source obfuscation for streams, this has the following benefits:
+
+- **Enhanced Security**: Prevents unauthorized access to the stream sources by exposing only the abstraction layer's port.
+- **Simplified Client Configuration**: Clients need only the abstraction layer's port and endpoint, reducing configuration complexity.
+- **Stream Source Independence**: Allows changes to stream sources without requiring client-side updates.

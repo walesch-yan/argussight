@@ -4,6 +4,8 @@
 
 Originally developed as an extension of the [video-streamer](https://github.com/mxcube/video-streamer) project by the [MXCuBE](https://github.com/mxcube) organization, `Argussight` can also operate as a standalone application. Its flexible design allows it to be reconfigured for integration with other components, making it adaptable to various use cases.
 
+---
+
 ## Why Choose Argussight?
 - **Enhanced User Experience**: Multiple streams could be displayed at once from the same source, providing a comprehensive view from different angles and/or sources.
 
